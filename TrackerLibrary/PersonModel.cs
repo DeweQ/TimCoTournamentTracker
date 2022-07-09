@@ -5,7 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TrackerLibrary;
-
+/// <summary>
+/// Represents a person competing in tournament.
+/// </summary>
 public class PersonModel
 {
     public string FirstName { get; set; }
