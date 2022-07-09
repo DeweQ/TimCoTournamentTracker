@@ -30,7 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(CreateTournamentForm));
             this.headerLabel = new System.Windows.Forms.Label();
-            this.TournamentNameValue = new System.Windows.Forms.TextBox();
+            this.tournamentNameValue = new System.Windows.Forms.TextBox();
             this.tournamentNameLabel = new System.Windows.Forms.Label();
             this.entryFeeValue = new System.Windows.Forms.TextBox();
             this.entryFeeLabel = new System.Windows.Forms.Label();
@@ -59,12 +59,12 @@
             this.headerLabel.TabIndex = 1;
             this.headerLabel.Text = "Create Tournament";
             // 
-            // TournamentNameValue
+            // tournamentNameValue
             // 
-            this.TournamentNameValue.Location = new System.Drawing.Point(12, 96);
-            this.TournamentNameValue.Name = "TournamentNameValue";
-            this.TournamentNameValue.Size = new System.Drawing.Size(316, 35);
-            this.TournamentNameValue.TabIndex = 10;
+            this.tournamentNameValue.Location = new System.Drawing.Point(12, 96);
+            this.tournamentNameValue.Name = "tournamentNameValue";
+            this.tournamentNameValue.Size = new System.Drawing.Size(316, 35);
+            this.tournamentNameValue.TabIndex = 10;
             // 
             // tournamentNameLabel
             // 
@@ -262,7 +262,7 @@
             this.Controls.Add(this.selectTeamLabel);
             this.Controls.Add(this.entryFeeValue);
             this.Controls.Add(this.entryFeeLabel);
-            this.Controls.Add(this.TournamentNameValue);
+            this.Controls.Add(this.tournamentNameValue);
             this.Controls.Add(this.tournamentNameLabel);
             this.Controls.Add(this.headerLabel);
             this.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
@@ -279,7 +279,7 @@
         #endregion
 
         private Label headerLabel;
-        private TextBox TournamentNameValue;
+        private TextBox tournamentNameValue;
         private Label tournamentNameLabel;
         private TextBox entryFeeValue;
         private Label entryFeeLabel;
