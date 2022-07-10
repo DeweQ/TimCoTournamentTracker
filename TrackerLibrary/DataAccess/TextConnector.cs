@@ -5,13 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using TrackerLibrary.Models;
 
-namespace TrackerLibrary;
+namespace TrackerLibrary.DataAccess;
 
-public class SqlConnector : IDataConnection
+public class TextConnector : IDataConnection
 {
-    // TODO - Make the CreatePrize method actually save to the database.
+    // ToDo - Make the CreatePrize method actually save to text file
     /// <summary>
-    /// Saves a new prize to the database.
+    /// Saves a new prize to the text file
     /// </summary>
     /// <param name="prizeModel">The prize information.</param>
     /// <returns>The prize information, including the unique identifier.</returns>

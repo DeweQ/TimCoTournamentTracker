@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TrackerLibrary.Models;
 
-namespace TrackerLibrary;
+namespace TrackerLibrary.DataAccess;
 
 public interface IDataConnection
 {
