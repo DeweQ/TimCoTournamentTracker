@@ -11,11 +11,11 @@ namespace TrackerLibrary;
 public class TeamModel
 {
     /// <summary>
-    /// Represents the list of members in this team.
+    /// The list of members in this team.
     /// </summary>
     public List<PersonModel> TeamMembers { get; set; } = new();
     /// <summary>
-    /// Represents the name of this team.
+    /// The name of the team.
     /// </summary>
     public string TeamName { get; set; }
 }

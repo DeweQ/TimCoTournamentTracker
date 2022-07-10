@@ -11,15 +11,15 @@ namespace TrackerLibrary;
 public class MatchupModel
 {
     /// <summary>
-    /// Represents teams in this matchup.
+    /// Two teams in this matchup.
     /// </summary>
     public List<MatchupEntryModel> Entries { get; set; } = new();
     /// <summary>
-    /// Represents the winner of a matchup.
+    /// The winner of this matchup.
     /// </summary>
     public TeamModel Winner { get; set; }
     /// <summary>
-    /// Represents what round is this matchup in.
+    /// The number of a round where this matchup played.
     /// </summary>
     public int MatchupRound { get; set; }
 }

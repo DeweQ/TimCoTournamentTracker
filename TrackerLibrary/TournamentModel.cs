@@ -11,25 +11,24 @@ namespace TrackerLibrary;
 public class TournamentModel
 {
     /// <summary>
-    /// Represents the name for this tournament.
+    /// The name for this tournament.
     /// </summary>
     public string TournamentName { get; set; }
     /// <summary>
-    /// Represents the entry fee for this tournament
-    /// if it has one.
+    /// The entry fee for this tournament or zero if it has no entry fee.
     /// </summary>
     public decimal EntryFee { get; set; }
     /// <summary>
-    /// Represents the list of teams entered this tournament.
+    /// The list of teams that entered this tournament.
     /// </summary>
     public List<TeamModel> EnteredTeams { get; set; } = new();
     /// <summary>
-    /// Represents the list of prizes for this tournament,
-    /// if it has one.
+    /// The list of prizes for this tournament,
+    /// if it has any.
     /// </summary>
     public List<PrizeModel> Prizes { get; set; } = new();
     /// <summary>
-    /// Represents the list of rounds for this tournament.
+    /// The list of rounds for this tournament.
     /// </summary>
     public List<List<MatchupModel>> Rounds { get; set; } = new();
 }
