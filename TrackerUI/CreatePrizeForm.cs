@@ -1,4 +1,5 @@
 ﻿using TrackerLibrary;
+using TrackerLibrary.Models;
 
 namespace TrackerUI
 {
