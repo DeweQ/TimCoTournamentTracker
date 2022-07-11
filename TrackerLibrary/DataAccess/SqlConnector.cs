@@ -22,7 +22,7 @@ public class SqlConnector : IDataConnection
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
 
-        var p = new DynamicParameters();
+        DynamicParameters p = new();
         p.Add("@FirstName", personModel.FirstName);
         p.Add("@LastName", personModel.LastName);
         p.Add("@EmailAddress", personModel.EmailAdress);
@@ -45,7 +45,7 @@ public class SqlConnector : IDataConnection
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
 
-        var p = new DynamicParameters();
+        DynamicParameters p = new();
         p.Add("@PlaceNumber", prizeModel.PlaceNumber);
         p.Add("@PlaceName", prizeModel.PlaceName);
         p.Add("@PrizeAmount", prizeModel.PrizeAmount);
@@ -67,7 +67,7 @@ public class SqlConnector : IDataConnection
     public TeamModel CreateTeam(TeamModel teamModel)
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
-        var p = new DynamicParameters();
+        DynamicParameters p = new();
         p.Add("@TeamName", teamModel.TeamName);
         p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
 
@@ -94,6 +94,24 @@ public class SqlConnector : IDataConnection
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
         List<PersonModel> result = connection.Query<PersonModel>("dbo.spPeople_GetAll").ToList();
+
+        return result;
+    }
+
+    /// <summary>
+    /// Get all teams from the database.
+    /// </summary>
+    /// <returns>List of teams containing all entries from the database.</returns>
+    public List<TeamModel> GetTeam_All()
+    {
+        using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
+        List<TeamModel> result = connection.Query<TeamModel>("dbo.spTeams_GetAll").ToList();
+        foreach (TeamModel team in result)
+        {
+            DynamicParameters p = new();
+            p.Add("@TeamId", team.Id);
+            team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam",p, commandType: CommandType.StoredProcedure).ToList();
+        }
 
         return result;
     }

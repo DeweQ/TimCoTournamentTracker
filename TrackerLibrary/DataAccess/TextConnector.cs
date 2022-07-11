@@ -104,4 +104,10 @@ public class TextConnector : IDataConnection
     {
         return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
     }
+
+    public List<TeamModel> GetTeam_All()
+    {
+        //TODO: add GetTeam_All implementation
+        throw new NotImplementedException();
+    }
 }
