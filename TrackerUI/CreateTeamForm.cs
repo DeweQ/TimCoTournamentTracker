@@ -14,7 +14,7 @@ namespace TrackerUI
 {
     public partial class CreateTeamForm : Form
     {
-
+        //TODO: add validation for TeamName/teamMembers for createTeamButton_Click
         private List<PersonModel> availableTeamMembers = GlobalConfig.Connection.GetPerson_All();
         private List<PersonModel> selectedTeamMembers = new();
 
@@ -49,6 +49,22 @@ namespace TrackerUI
             teamMembersListBox.DisplayMember = "FullName";
         }
 
+        private bool ValidateForm()
+        {
+            //TODO: amp validation
+            bool result = true;
+
+            if (firstNameValue.Text.Length == 0) result = false;
+
+            if (lastNameValue.Text.Length == 0) result = false;
+
+            if (emailAdressLabel.Text.Length == 0) result = false;
+
+            if (cellphoneLabel.Text.Length == 0) result = false;
+
+            return result;
+        }
+
         private void createMemberButton_Click(object sender, EventArgs e)
         {
             if (ValidateForm())
@@ -72,22 +88,6 @@ namespace TrackerUI
                 cellphoneValue.Text = string.Empty;
             }
             else MessageBox.Show("You need to fill in all of the fields.");
-        }
-
-        private bool ValidateForm()
-        {
-            //TODO: amp validation
-            bool result = true;
-
-            if (firstNameValue.Text.Length == 0) result = false;
-
-            if (lastNameValue.Text.Length == 0) result = false;
-
-            if (emailAdressLabel.Text.Length == 0) result = false;
-
-            if (cellphoneLabel.Text.Length == 0) result = false;
-
-            return result;
         }
 
         private void addTeamMemberButton_Click(object sender, EventArgs e)
@@ -118,7 +118,14 @@ namespace TrackerUI
 
         private void createTeamButton_Click(object sender, EventArgs e)
         {
+            TeamModel t = new();
 
+            t.TeamName = TeamNameValue.Text;
+            t.TeamMembers = selectedTeamMembers;
+
+            t = GlobalConfig.Connection.CreateTeam(t);
+
+            //TODO: If we arent closing this form after creation, reset the form
         }
     }
 }

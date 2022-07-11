@@ -11,13 +11,21 @@ namespace TrackerLibrary.DataAccess;
 
 public class TextConnector : IDataConnection
 {
+    private const string PrizesFile = "PrizeModels.csv";
+    private const string PeopleFile = "PersonModels.csv";
+    private const string TeamsFile = "TeamModels.csv";
+
     public TextConnector()
     {
         EnsureFolderCreated();
     }
 
-    private const string PrizesFile = "PrizeModels.csv";
-    private const string PeopleFile = "PersonModels.csv";
+    private void EnsureFolderCreated()
+    {
+        string path = ConfigurationManager.AppSettings["filePath"];
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
+    }
 
     /// <summary>
     /// Saves a new prize to the text file
@@ -67,13 +75,31 @@ public class TextConnector : IDataConnection
         return personModel;
     }
 
-    private void EnsureFolderCreated()
+    /// <summary>
+    /// Saves a new team to the text file.
+    /// </summary>
+    /// <param name="teamModel">The team information.</param>
+    /// <returns>The team information, including the unique identifier.</returns>
+    public TeamModel CreateTeam(TeamModel teamModel)
     {
-        string path = ConfigurationManager.AppSettings["filePath"];
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
+        List<TeamModel> teams = TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
+
+        int currentId = 1;
+        if (teams.Count > 0) currentId = teams.OrderByDescending(x => x.Id).First().Id;
+
+        teamModel.Id = currentId;
+
+        teams.Add(teamModel);
+
+        teams.SaveToTeamsFile(TeamsFile);
+
+        return teamModel;
     }
 
+    /// <summary>
+    /// Gets all person from the text file.
+    /// </summary>
+    /// <returns>List of PersonModel containing all entries from the database.</returns>
     public List<PersonModel> GetPerson_All()
     {
         return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();

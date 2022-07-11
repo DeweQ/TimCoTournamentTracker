@@ -60,6 +60,33 @@ public class SqlConnector : IDataConnection
     }
 
     /// <summary>
+    /// Saves a new team to the database.
+    /// </summary>
+    /// <param name="teamModel">The team information.</param>
+    /// <returns>The team information, including the unique identifier.</returns>
+    public TeamModel CreateTeam(TeamModel teamModel)
+    {
+        using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
+        var p = new DynamicParameters();
+        p.Add("@TeamName", teamModel.TeamName);
+        p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        connection.Execute("dbo.spTeams_Insert", p, commandType: CommandType.StoredProcedure);
+        teamModel.Id = p.Get<int>("@id");
+
+        foreach (PersonModel person in teamModel.TeamMembers)
+        {
+            p = new DynamicParameters();
+            p.Add("@TeamId", teamModel.Id);
+            p.Add("@PersonId", person.Id);
+
+            connection.Execute("dbo.spTeamMembers_Insert", p, commandType: CommandType.StoredProcedure);
+        }
+
+        return teamModel;
+    }
+
+    /// <summary>
     /// Get all people from the database.
     /// </summary>
     /// <returns>List of PersonModel containing all entries from the database.</returns>
