@@ -14,9 +14,39 @@ namespace TrackerUI
 {
     public partial class CreateTeamForm : Form
     {
+
+        private List<PersonModel> availableTeamMembers = GlobalConfig.Connection.GetPerson_All();
+        private List<PersonModel> selectedTeamMembers = new();
+
         public CreateTeamForm()
         {
             InitializeComponent();
+
+            //CreateSampleData();
+
+            WireUpLists();
+        }
+
+        private void CreateSampleData()
+        {
+            availableTeamMembers.Add(new PersonModel { FirstName = "Frodo", LastName = "Baggins" });
+            availableTeamMembers.Add(new PersonModel { FirstName = "Samwise", LastName = "Gamgee" });
+
+            selectedTeamMembers.Add(new PersonModel { FirstName = "Gendalf", LastName = "The Grey" });
+            selectedTeamMembers.Add(new PersonModel { FirstName = "Saruman", LastName = "The White" });
+        }
+
+        private void WireUpLists()
+        {
+            selectTeamMemberDropDown.DataSource = null;
+
+            selectTeamMemberDropDown.DataSource = availableTeamMembers;
+            selectTeamMemberDropDown.DisplayMember = "FullName";
+
+            teamMembersListBox.DataSource = null;
+
+            teamMembersListBox.DataSource = selectedTeamMembers;
+            teamMembersListBox.DisplayMember = "FullName";
         }
 
         private void createMemberButton_Click(object sender, EventArgs e)
@@ -30,7 +60,11 @@ namespace TrackerUI
                 p.EmailAdress = emailAdressValue.Text;
                 p.CellphoneNumber = cellphoneValue.Text;
 
-                GlobalConfig.Connection.CreatePerson(p);
+                p = GlobalConfig.Connection.CreatePerson(p);
+
+                selectedTeamMembers.Add(p);
+
+                WireUpLists();
 
                 firstNameValue.Text = string.Empty;
                 lastNameValue.Text = string.Empty;
@@ -47,13 +81,44 @@ namespace TrackerUI
 
             if (firstNameValue.Text.Length == 0) result = false;
 
-            if (lastNameValue.Text.Length == 0) result = false; 
+            if (lastNameValue.Text.Length == 0) result = false;
 
             if (emailAdressLabel.Text.Length == 0) result = false;
 
-            if (cellphoneLabel.Text.Length == 0) result = false; 
+            if (cellphoneLabel.Text.Length == 0) result = false;
 
             return result;
+        }
+
+        private void addTeamMemberButton_Click(object sender, EventArgs e)
+        {
+            PersonModel p = (PersonModel)selectTeamMemberDropDown.SelectedItem;
+
+            if (p != null)
+            {
+                availableTeamMembers.Remove(p);
+                selectedTeamMembers.Add(p);
+
+                WireUpLists();
+            }
+        }
+
+        private void removeSelectedMemberButton_Click(object sender, EventArgs e)
+        {
+            PersonModel p = (PersonModel)teamMembersListBox.SelectedItem;
+
+            if (p != null)
+            {
+                selectedTeamMembers.Remove(p);
+                availableTeamMembers.Add(p);
+
+                WireUpLists();
+            }
+        }
+
+        private void createTeamButton_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

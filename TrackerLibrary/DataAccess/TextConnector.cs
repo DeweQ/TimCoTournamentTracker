@@ -74,4 +74,8 @@ public class TextConnector : IDataConnection
             Directory.CreateDirectory(path);
     }
 
+    public List<PersonModel> GetPerson_All()
+    {
+        return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+    }
 }
