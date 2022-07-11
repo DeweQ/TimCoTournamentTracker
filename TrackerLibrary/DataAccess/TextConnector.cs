@@ -17,6 +17,7 @@ public class TextConnector : IDataConnection
     }
 
     private const string PrizesFile = "PrizeModels.csv";
+    private const string PeopleFile = "PersonModels.csv";
 
     /// <summary>
     /// Saves a new prize to the text file
@@ -31,9 +32,7 @@ public class TextConnector : IDataConnection
         //Find the ID
         int currentId = 1;
         if (prizes.Count > 0)
-        {
             currentId = prizes.OrderByDescending(x => x.Id).First().Id + 1;
-        }
 
         //Add the new record with the new ID(max ID +1)
         prizeModel.Id = currentId;
@@ -47,10 +46,32 @@ public class TextConnector : IDataConnection
         return prizeModel;
     }
 
+    /// <summary>
+    /// Saves a new person to the text file.
+    /// </summary>
+    /// <param name="personModel">The person information.</param>
+    /// <returns>The person information, includiong the unique identifier.</returns>
+    public PersonModel CreatePerson(PersonModel personModel)
+    {
+        List<PersonModel> persons = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+
+        int currentId = 1;
+        if(persons.Count > 0)
+            currentId = persons.OrderByDescending(x => x.Id).First().Id + 1;
+
+        personModel.Id = currentId;
+
+        persons.Add(personModel);
+        persons.SaveToPeopleFile(PeopleFile);
+
+        return personModel;
+    }
+
     private void EnsureFolderCreated()
     {
         string path = ConfigurationManager.AppSettings["filePath"];
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
     }
+
 }

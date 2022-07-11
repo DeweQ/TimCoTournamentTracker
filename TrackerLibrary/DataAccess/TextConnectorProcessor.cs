@@ -52,9 +52,37 @@ public static class TextConnectorProcessor
         List<string> lines = new();
 
         foreach (PrizeModel p in models)
-        {
             lines.Add($"{p.Id},{p.PlaceNumber},{p.PlaceName},{p.PrizeAmount},{p.PrizePercentage}");
+
+        File.WriteAllLines(fileName.FullFilePath(), lines);
+    }
+
+    public static List<PersonModel> ConvertToPersonModels(this List<string> lines)
+    {
+        List<PersonModel> result = new();
+
+        foreach (var line in lines)
+        {
+            string[] columns = line.Split(',');
+            PersonModel p = new();
+            p.Id = int.Parse(columns[0]);
+            p.FirstName = columns[1];
+            p.LastName = columns[2];
+            p.EmailAdress = columns[3];
+            p.CellphoneNumber = columns[4];
+
+            result.Add(p);
         }
+
+        return result;
+    }
+    
+    public static void SaveToPeopleFile(this List<PersonModel> models, string fileName)
+    {
+        List<string> lines = new();
+
+        foreach (PersonModel p in models)
+            lines.Add($"{p.Id},{p.FirstName},{p.LastName},{p.EmailAdress},{p.CellphoneNumber}");
 
         File.WriteAllLines(fileName.FullFilePath(), lines);
     }

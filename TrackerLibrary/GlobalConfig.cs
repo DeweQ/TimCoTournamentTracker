@@ -16,14 +16,12 @@ public static class GlobalConfig
     {
         if (db == DatabaseType.Sql)
         {
-            // TODO - Set up the sql connector properly
             SqlConnector sql = new();
             Connection=sql;
         }
 
         else if(db == DatabaseType.TextFile)
         {
-            // TODO - Set up the text file connector properly
             TextConnector text = new();
             Connection=text;
         }
