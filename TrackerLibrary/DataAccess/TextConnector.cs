@@ -112,7 +112,6 @@ public class TextConnector : IDataConnection
 
         tournaments.SaveToTournamentsFile(TournamentsFile);
 
-        return tournamentModel;
     }
 
     /// <summary>

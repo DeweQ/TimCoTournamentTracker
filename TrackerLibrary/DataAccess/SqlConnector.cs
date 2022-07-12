@@ -102,8 +102,43 @@ public class SqlConnector : IDataConnection
         SaveTournamentTeams(tournamentModel, connection);
 
         //TODO: Save Rounds
+        SaveTournamentRounds(tournamentModel, connection);
+    }
 
-        return tournamentModel;
+    private void SaveTournamentRounds(TournamentModel tournamentModel, IDbConnection connection)
+    {
+        //loop through the rounds
+        //loop through the matchups and save them
+        //loop through the entries and save them
+
+        foreach (List<MatchupModel> round in tournamentModel.Rounds)
+        {
+            foreach(MatchupModel matchup in round)
+            {
+                DynamicParameters p = new();
+                p.Add("@TournamentId", tournamentModel.Id);
+                p.Add("@MatchupRound", matchup.MatchupRound);
+                p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                connection.Execute("dbo.spMatchups_Insert", p, commandType: CommandType.StoredProcedure);
+
+                matchup.Id = p.Get<int>("@id");
+
+                foreach (MatchupEntryModel entry in matchup.Entries)
+                {
+                    p = new();
+                    p.Add("@MatchupId", matchup.Id);
+                    p.Add("@ParentMatchupId", entry.ParentMatchup?.Id);
+                    p.Add("@TeamCompetingId", entry.TeamCompeting?.Id);
+                    p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+                    connection.Execute("dbo.spMatchupEntries_Insert", p, commandType: CommandType.StoredProcedure);
+
+                    entry.Id = p.Get<int>("@id");
+                }
+            }
+        }
+
     }
 
     private static void SaveTournamentTeams(TournamentModel tournamentModel, IDbConnection connection)
@@ -112,7 +147,7 @@ public class SqlConnector : IDataConnection
         {
             DynamicParameters p = new();
             p.Add("@TournamentId", tournamentModel.Id);
-            p.Add("@@TeamId", team.Id);
+            p.Add("@TeamId", team.Id);
 
             connection.Execute("dbo.spTournamentEntries_Insert", p, commandType: CommandType.StoredProcedure);
         }
