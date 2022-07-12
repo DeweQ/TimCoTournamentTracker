@@ -15,13 +15,15 @@ public class TextConnector : IDataConnection
     private const string PeopleFile = "PersonModels.csv";
     private const string TeamsFile = "TeamModels.csv";
     private const string TournamentsFile = "TournamentModels.csv";
+    private const string MatchupsFile = "MatchupModels.csv";
+    private const string MatchupEntriesFile = "MatchupEntryModels.csv";
 
     public TextConnector()
     {
         EnsureFolderCreated();
     }
 
-    private void EnsureFolderCreated()
+    private static void EnsureFolderCreated()
     {
         string path = ConfigurationManager.AppSettings["filePath"];
         if (!Directory.Exists(path))
@@ -102,16 +104,19 @@ public class TextConnector : IDataConnection
         List<TournamentModel> tournaments = TournamentsFile
             .FullFilePath()
             .LoadFile()
-            .ConvertToTournamentModels(TeamsFile, PeopleFile, PrizesFile);
+            .ConvertToTournamentModels(PeopleFile);
 
         int currentId = 1;
         if (tournaments.Count > 0)
             currentId = tournaments.OrderByDescending(x => x.Id).First().Id + 1;
 
+        tournamentModel.Id = currentId;
+
+        tournamentModel.SaveRoundsToFile(MatchupsFile, MatchupEntriesFile);
+
         tournaments.Add(tournamentModel);
 
         tournaments.SaveToTournamentsFile(TournamentsFile);
-
     }
 
     /// <summary>

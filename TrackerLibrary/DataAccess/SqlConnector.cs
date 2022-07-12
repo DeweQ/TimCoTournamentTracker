@@ -101,12 +101,12 @@ public class SqlConnector : IDataConnection
 
         SaveTournamentTeams(tournamentModel, connection);
 
-        //TODO: Save Rounds
         SaveTournamentRounds(tournamentModel, connection);
     }
 
     private void SaveTournamentRounds(TournamentModel tournamentModel, IDbConnection connection)
     {
+        //Low: refoctor long method
         //loop through the rounds
         //loop through the matchups and save them
         //loop through the entries and save them
