@@ -144,7 +144,7 @@ public static class TextConnectorProcessor
             MatchupModel m = new();
 
             m.Id = int.Parse(columns[0]);
-            m.Entries = ConvertStringToMatchupEntryModels(columns[1]);
+            m.Entries = ConvertStringToMatchupEntryModels(columns[1],m);
             m.Winner = int.TryParse(columns[2],out int winnerId)?LookupTeamById(winnerId):null;
             m.MatchupRound = int.Parse(columns[3]);
 
@@ -175,16 +175,70 @@ public static class TextConnectorProcessor
         return result;
     }
 
+    private static List<MatchupEntryModel> ConvertToMatchupEntryModels(this List<string> lines,MatchupModel m)
+    {
+        List<MatchupEntryModel> result = new();
+        foreach (string line in lines)
+        {
+            string[] columns = line.Split(',');
+
+            MatchupEntryModel me = new();
+            me.Id = int.Parse(columns[0]);
+            me.TeamCompeting = int.TryParse(columns[1], out int teamCompeting) ?
+                LookupTeamById(teamCompeting) : null;
+            me.Score = double.Parse(columns[2]);
+            me.ParentMatchup = m;
+
+            result.Add(me);
+        }
+
+        return result;
+    }
+
     private static List<MatchupEntryModel> ConvertStringToMatchupEntryModels(string input)
     {
-        string[] ids = input.Split('|');
-        List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
-        List<MatchupEntryModel> result = entries
-            .Where(x => ids
-                .ToList()
-                .Contains(x.Id.ToString()))
-            .ToList();
-        return result;
+        var  ids = input.Split('|').ToList();
+        var stringEntries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile();
+        List<string> entries = new();
+         foreach(string entry in stringEntries)
+        {
+            var cols = entry.Split(',');
+            var entryId = cols[0];
+            if (ids.Contains(entryId))
+                entries.Add(entry);
+        }    
+        return stringEntries.ConvertToMatchupEntryModels();
+
+        //List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
+        //List<MatchupEntryModel> result = entries
+        //    .Where(x => ids
+        //        .ToList()
+        //        .Contains(x.Id.ToString()))
+        //    .ToList();
+        //return result;
+    }
+
+    private static List<MatchupEntryModel> ConvertStringToMatchupEntryModels(string input,MatchupModel m)
+    {
+        var ids = input.Split('|').ToList();
+        var stringEntries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile();
+        List<string> entries = new();
+        foreach (string entry in stringEntries)
+        {
+            var cols = entry.Split(',');
+            var entryId = cols[0];
+            if (ids.Contains(entryId))
+                entries.Add(entry);
+        }
+        return stringEntries.ConvertToMatchupEntryModels(m);
+
+        //List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
+        //List<MatchupEntryModel> result = entries
+        //    .Where(x => ids
+        //        .ToList()
+        //        .Contains(x.Id.ToString()))
+        //    .ToList();
+        //return result;
     }
 
     private static string ConvertPeopleListToString(List<PersonModel> people)
@@ -207,15 +261,7 @@ public static class TextConnectorProcessor
         //Low: refactor repeating code
 
         string result = string.Empty;
-
-        if (matchups.Count == 0) return result;
-
-        foreach (MatchupModel m in matchups)
-            result += $"{m.Id}^";
-
-        result = result.TrimEnd('^');
-
-        return result;
+        return string.Join('^',matchups.Select(x => x.Id));
     }
 
     private static string ConvertRoundsToString(List<List<MatchupModel>> rounds)
@@ -336,18 +382,11 @@ public static class TextConnectorProcessor
 
         matchups.Add(matchup);
 
-        List<string> lines = new();
-        foreach (MatchupModel m in matchups)
-            lines.Add($"{m.Id}," +
-                $"{string.Empty}," +
-                $"{m.Winner?.Id}," +
-                $"{m.MatchupRound}");
-
         foreach (MatchupEntryModel entry in matchup.Entries)
             entry.SaveEntryToFile();
 
         //id,entries(pipe-separated ids),winnerId,matchupRound
-        lines = new();
+        List<string> lines = new();
         foreach (MatchupModel m in matchups)
             lines.Add($"{m.Id}," +
                 $"{ConvertMatchupEntryListToString(m.Entries)}," +
@@ -379,6 +418,11 @@ public static class TextConnectorProcessor
 
     private static MatchupModel LookupMatchupById(int id)
     {
+        var lines = GlobalConfig.MatchupsFile.FullFilePath().LoadFile();
+        var stringMatchup = lines.First(x => x.Split(',')[0].Equals(id.ToString()));
+        var result = new List<string>();
+        result.Add(stringMatchup);
+        return result.ConvertToMatchupModels().First();
         List<MatchupModel> matchups = GlobalConfig.MatchupsFile.FullFilePath().LoadFile().ConvertToMatchupModels();
         
         return matchups.First(m => m.Id == id);

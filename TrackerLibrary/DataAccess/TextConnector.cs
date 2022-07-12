@@ -88,7 +88,7 @@ public class TextConnector : IDataConnection
         List<TeamModel> teams = TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
 
         int currentId = 1;
-        if (teams.Count > 0) currentId = teams.OrderByDescending(x => x.Id).First().Id;
+        if (teams.Count > 0) currentId = teams.OrderByDescending(x => x.Id).First().Id + 1;
 
         teamModel.Id = currentId;
 
