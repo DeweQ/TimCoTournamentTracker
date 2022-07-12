@@ -14,6 +14,7 @@ public class TextConnector : IDataConnection
     private const string PrizesFile = "PrizeModels.csv";
     private const string PeopleFile = "PersonModels.csv";
     private const string TeamsFile = "TeamModels.csv";
+    private const string TournamentsFile = "TournamentModels.csv";
 
     public TextConnector()
     {
@@ -64,7 +65,7 @@ public class TextConnector : IDataConnection
         List<PersonModel> persons = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
 
         int currentId = 1;
-        if(persons.Count > 0)
+        if (persons.Count > 0)
             currentId = persons.OrderByDescending(x => x.Id).First().Id + 1;
 
         personModel.Id = currentId;
@@ -96,6 +97,24 @@ public class TextConnector : IDataConnection
         return teamModel;
     }
 
+    public void CreateTournament(TournamentModel tournamentModel)
+    {
+        List<TournamentModel> tournaments = TournamentsFile
+            .FullFilePath()
+            .LoadFile()
+            .ConvertToTournamentModels(TeamsFile, PeopleFile, PrizesFile);
+
+        int currentId = 1;
+        if (tournaments.Count > 0)
+            currentId = tournaments.OrderByDescending(x => x.Id).First().Id + 1;
+
+        tournaments.Add(tournamentModel);
+
+        tournaments.SaveToTournamentsFile(TournamentsFile);
+
+        return tournamentModel;
+    }
+
     /// <summary>
     /// Gets all person from the text file.
     /// </summary>
@@ -113,4 +132,5 @@ public class TextConnector : IDataConnection
     {
         return TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
     }
+
 }

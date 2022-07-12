@@ -87,6 +87,61 @@ public class SqlConnector : IDataConnection
     }
 
     /// <summary>
+    /// Saves a new tournament to the database.
+    /// </summary>
+    /// <param name="tournamentModel">The tournament information.</param>
+    /// <returns>The tournament information, including the unique identifier.</returns>
+    public void CreateTournament(TournamentModel tournamentModel)
+    {
+        using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
+
+        SaveTournamentModel(tournamentModel, connection);
+
+        SaveTournametPrizes(tournamentModel, connection);
+
+        SaveTournamentTeams(tournamentModel, connection);
+
+        //TODO: Save Rounds
+
+        return tournamentModel;
+    }
+
+    private static void SaveTournamentTeams(TournamentModel tournamentModel, IDbConnection connection)
+    {
+        foreach (TeamModel team in tournamentModel.EnteredTeams)
+        {
+            DynamicParameters p = new();
+            p.Add("@TournamentId", tournamentModel.Id);
+            p.Add("@@TeamId", team.Id);
+
+            connection.Execute("dbo.spTournamentEntries_Insert", p, commandType: CommandType.StoredProcedure);
+        }
+    }
+
+    private static void SaveTournametPrizes(TournamentModel tournamentModel, IDbConnection connection)
+    {
+        foreach (PrizeModel prize in tournamentModel.Prizes)
+        {
+            DynamicParameters p = new();
+            p.Add("@TournamentId", tournamentModel.Id);
+            p.Add("@PrizeId", prize.Id);
+
+            connection.Execute("dbo.spTournamentPrizes_Insert", p, commandType: CommandType.StoredProcedure);
+        }
+    }
+
+    private static void SaveTournamentModel(TournamentModel tournamentModel, IDbConnection connection)
+    {
+        DynamicParameters p = new();
+        p.Add("@TournamentName", tournamentModel.TournamentName);
+        p.Add("@EntryFee", tournamentModel.EntryFee);
+        p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
+
+        connection.Execute("dbo.spTournament_Insert", p, commandType: CommandType.StoredProcedure);
+        tournamentModel.Id = p.Get<int>("@id");
+    }
+
+    /// <summary>
     /// Get all people from the database.
     /// </summary>
     /// <returns>List of PersonModel containing all entries from the database.</returns>
@@ -110,7 +165,7 @@ public class SqlConnector : IDataConnection
         {
             DynamicParameters p = new();
             p.Add("@TeamId", team.Id);
-            team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam",p, commandType: CommandType.StoredProcedure).ToList();
+            team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam", p, commandType: CommandType.StoredProcedure).ToList();
         }
 
         return result;
