@@ -105,9 +105,12 @@ public class TextConnector : IDataConnection
         return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
     }
 
+    /// <summary>
+    /// Gets all teams from the text file.
+    /// </summary>
+    /// <returns>List of TeamModel containing all entries from the database.</returns>
     public List<TeamModel> GetTeam_All()
     {
-        //TODO: add GetTeam_All implementation
-        throw new NotImplementedException();
+        return TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
     }
 }
