@@ -16,7 +16,7 @@ internal static class Program
 
 
         //Initialize the database connection.
-        GlobalConfig.InitializeConnections(DatabaseType.TextFile);
+        GlobalConfig.InitializeConnections(DatabaseType.Sql);
 
 
         Application.Run(new CreateTournamentForm());
