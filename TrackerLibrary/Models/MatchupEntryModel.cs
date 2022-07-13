@@ -14,6 +14,12 @@ public class MatchupEntryModel
     /// The unique identifier for the matchup entry.
     /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// The ID for TeamCompeting from the database.
+    /// </summary>
+    public int TeamCompetingId { get; set; }
+
     /// <summary>
     /// The team in a given matchup.
     /// </summary>
@@ -22,6 +28,12 @@ public class MatchupEntryModel
     /// The score for this team.
     /// </summary>
     public double Score { get; set; }
+
+    /// <summary>
+    /// The ID for ParentMatchup from the database.
+    /// </summary>
+    public int ParentMatchupId { get; set; }
+
     /// <summary>
     /// The matchup that this team came
     /// from as a winner.

@@ -62,10 +62,10 @@ public static class TextConnectorProcessor
         return result;
     }
 
-    public static List<TeamModel> ConvertToTeamModels(this List<string> lines, string peopleFileName)
+    public static List<TeamModel> ConvertToTeamModels(this List<string> lines)
     {
         List<TeamModel> result = new();
-        List<PersonModel> persons = peopleFileName.FullFilePath().LoadFile().ConvertToPersonModels();
+        List<PersonModel> persons = GlobalConfig.PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
 
         foreach (string line in lines)
         {
@@ -85,14 +85,13 @@ public static class TextConnectorProcessor
     }
 
     public static List<TournamentModel> ConvertToTournamentModels(
-        this List<string> lines,
-        string peopleFileName)
+        this List<string> lines)
     {
         //Id,TournamentName,EntryFee,Pipe-separated TeamModel.Id, pipe-Separated PrizeModel.Id,carrot-separated sets of Matchup.Id separated by pipes
         //1,My Tournament,0.00,1|2|3|4,1|3|4,1^2^3^4|5^6|7
 
         List<TournamentModel> result = new();
-        List<TeamModel> teams = GlobalConfig.TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(peopleFileName);
+        List<TeamModel> teams = GlobalConfig.TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
         List<PrizeModel> prizes = GlobalConfig.PrizesFile.FullFilePath().LoadFile().ConvertToPrizeModels();
         List<MatchupModel> matchups = GlobalConfig.MatchupsFile.FullFilePath().LoadFile().ConvertToMatchupModels();
 
@@ -375,7 +374,7 @@ public static class TextConnectorProcessor
         TeamModel result = GlobalConfig.TeamsFile.FullFilePath().LoadFile()
             .Where(e => e.Split(',')[0] == id.ToString())
             .ToList()
-            .ConvertToTeamModels(GlobalConfig.PeopleFile)
+            .ConvertToTeamModels()
             .First();
             
         return result;

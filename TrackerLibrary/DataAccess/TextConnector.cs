@@ -85,7 +85,7 @@ public class TextConnector : IDataConnection
     /// <returns>The team information, including the unique identifier.</returns>
     public TeamModel CreateTeam(TeamModel teamModel)
     {
-        List<TeamModel> teams = TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
+        List<TeamModel> teams = TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
 
         int currentId = 1;
         if (teams.Count > 0) currentId = teams.OrderByDescending(x => x.Id).First().Id + 1;
@@ -94,17 +94,21 @@ public class TextConnector : IDataConnection
 
         teams.Add(teamModel);
 
-        teams.SaveToTeamsFile(TeamsFile);
+        teams.SaveToTeamsFile(GlobalConfig.TeamsFile);
 
         return teamModel;
     }
 
+    /// <summary>
+    /// Saves a new tournament to the text file.
+    /// </summary>
+    /// <param name="tournamentModel"></param>
     public void CreateTournament(TournamentModel tournamentModel)
     {
         List<TournamentModel> tournaments = TournamentsFile
             .FullFilePath()
             .LoadFile()
-            .ConvertToTournamentModels(PeopleFile);
+            .ConvertToTournamentModels();
 
         int currentId = 1;
         if (tournaments.Count > 0)
@@ -134,7 +138,15 @@ public class TextConnector : IDataConnection
     /// <returns>List of TeamModel containing all entries from the database.</returns>
     public List<TeamModel> GetTeam_All()
     {
-        return TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(PeopleFile);
+        return TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
     }
 
+    /// <summary>
+    /// Gets all tournaments from the text file.
+    /// </summary>
+    /// <returns>List of TournamentModel containing all entries from the database.</returns>
+    public List<TournamentModel> GetTournament_All()
+    {
+        return GlobalConfig.TournamentsFile.FullFilePath().LoadFile().ConvertToTournamentModels();
+    }
 }

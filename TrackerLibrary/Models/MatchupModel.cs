@@ -18,6 +18,12 @@ public class MatchupModel
     /// Two teams in this matchup.
     /// </summary>
     public List<MatchupEntryModel> Entries { get; set; } = new();
+
+    /// <summary>
+    /// The ID from the database that will be used to identify the winner
+    /// </summary>
+    public int WinnerId { get; set; }
+
     /// <summary>
     /// The winner of this matchup.
     /// </summary>
