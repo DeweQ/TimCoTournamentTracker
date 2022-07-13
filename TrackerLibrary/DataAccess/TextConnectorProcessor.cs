@@ -111,7 +111,8 @@ public static class TextConnectorProcessor
 
             string[] prizeIds = columns[4].Split('|');
             foreach (string id in prizeIds)
-                tm.Prizes.Add(prizes.Where(x => x.Id == int.Parse(id)).First());
+                if (int.TryParse(id, out int parsedId))
+                    tm.Prizes.Add(prizes.First(e => e.Id == parsedId));
 
             string[] rounds = columns[5].Split('|');
             foreach (string round in rounds)
@@ -228,11 +229,11 @@ public static class TextConnectorProcessor
         if (prizes.Count == 0) return result;
 
         foreach (PrizeModel p in prizes)
-            result += $"{p.Id}|";
+            result += $"{p?.Id}|";
 
         result = result.TrimEnd('|');
 
-        return result;
+        return string.Join('|', prizes.Select(p => p.Id));
     }
 
     private static string ConvertTeamListToString(List<TeamModel> teams)
