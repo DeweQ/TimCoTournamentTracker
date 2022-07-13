@@ -128,7 +128,6 @@ public static class TextConnectorProcessor
             result.Add(tm);
         }
 
-
         return result;
     }
 
@@ -175,55 +174,12 @@ public static class TextConnectorProcessor
         return result;
     }
 
-    private static List<MatchupEntryModel> ConvertToMatchupEntryModels(this List<string> lines,MatchupModel m)
-    {
-        List<MatchupEntryModel> result = new();
-        foreach (string line in lines)
-        {
-            string[] columns = line.Split(',');
-
-            MatchupEntryModel me = new();
-            me.Id = int.Parse(columns[0]);
-            me.TeamCompeting = int.TryParse(columns[1], out int teamCompeting) ?
-                LookupTeamById(teamCompeting) : null;
-            me.Score = double.Parse(columns[2]);
-            me.ParentMatchup = m;
-
-            result.Add(me);
-        }
-
-        return result;
-    }
-
     private static List<MatchupEntryModel> ConvertStringToMatchupEntryModels(string input)
     {
         string[] ids = input.Split('|');
         List<string> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile();
         List<string> matchingEntries = entries.Where(e => ids.ToList().Contains(e.Split(',')[0])).ToList();
         return matchingEntries.ConvertToMatchupEntryModels();
-
-        //List<MatchupEntryModel> result = entries.ConvertToMatchupEntryModels()
-        //    .Where(x => ids
-        //        .ToList()
-        //        .Contains(x.Id.ToString()))
-        //    .ToList();
-        //return result;
-    }
-
-    private static List<MatchupEntryModel> ConvertStringToMatchupEntryModels(string input,MatchupModel m)
-    {
-        //TODO: Hotfix applied. refactory is needed.
-        var ids = input.Split('|').ToList();
-        var stringEntries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile();
-        List<string> entries = new();
-        foreach (string entry in stringEntries)
-        {
-            var cols = entry.Split(',');
-            var entryId = cols[0];
-            if (ids.Contains(entryId))
-                entries.Add(entry);
-        }
-        return stringEntries.ConvertToMatchupEntryModels(m);
     }
 
     private static string ConvertPeopleListToString(List<PersonModel> people)
@@ -410,30 +366,17 @@ public static class TextConnectorProcessor
             .ToList()
             .ConvertToMatchupModels()
             .First();
-
-        //var lines = GlobalConfig.MatchupsFile.FullFilePath().LoadFile();
-        //var stringMatchup = lines.First(x => x.Split(',')[0].Equals(id.ToString()));
-        //var result = new List<string>();
-        //result.Add(stringMatchup);
-        //return result.ConvertToMatchupModels().First();
-        //List<MatchupModel> matchups = GlobalConfig.MatchupsFile.FullFilePath().LoadFile().ConvertToMatchupModels();
-        
-        //return matchups.First(m => m.Id == id);
-
         return result;
     }
 
     private static TeamModel LookupTeamById(int id)
     {
-
         TeamModel result = GlobalConfig.TeamsFile.FullFilePath().LoadFile()
             .Where(e => e.Split(',')[0] == id.ToString())
             .ToList()
             .ConvertToTeamModels(GlobalConfig.PeopleFile)
             .First();
             
-        //TeamModel result = GlobalConfig.TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels(GlobalConfig.PeopleFile).First(x => x.Id ==id);
-
         return result;
     }
 }
