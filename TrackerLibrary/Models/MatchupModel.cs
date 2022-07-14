@@ -32,4 +32,15 @@ public class MatchupModel
     /// The number of a round where this matchup played.
     /// </summary>
     public int MatchupRound { get; set; }
+
+    public string DisplayName
+    {
+        get
+        {
+            string result = "Matchup Not Yet Determined";
+            if (Entries.All(e => e.TeamCompeting!=null))
+                result = string.Join(" vs. ", Entries.Select(e => e.TeamCompeting?.TeamName));
+            return result;
+        }
+    }
 }

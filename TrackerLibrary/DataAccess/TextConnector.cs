@@ -149,4 +149,9 @@ public class TextConnector : IDataConnection
     {
         return GlobalConfig.TournamentsFile.FullFilePath().LoadFile().ConvertToTournamentModels();
     }
+
+    public void UpdateMatchup(MatchupModel matchupModel)
+    {
+        matchupModel.UpdateMathcupToFile();
+    }
 }

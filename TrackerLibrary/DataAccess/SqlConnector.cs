@@ -278,4 +278,33 @@ public class SqlConnector : IDataConnection
 
         return result;
     }
+
+    public void UpdateMatchup(MatchupModel matchupModel)
+    {
+        using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
+
+        DynamicParameters p = new();
+
+        if (matchupModel.Winner != null)
+        {
+            p.Add("@id", matchupModel.Id);
+            p.Add("@WinnerId", matchupModel.Winner.Id);
+
+            connection.Execute("dbo.spMatchups_Update", p, commandType: CommandType.StoredProcedure);
+        }
+
+        foreach (MatchupEntryModel entry in matchupModel.Entries)
+        {
+            if (entry.TeamCompeting != null)
+            {
+                p = new();
+                p.Add("@id", entry.Id);
+                p.Add("@TeamCompetingId", entry.TeamCompeting.Id);
+                p.Add("@Score", entry.Score);
+
+                connection.Execute("dbo.spMatchupEntries_Update", p, commandType: CommandType.StoredProcedure); 
+            }
+        }
+
+    }
 }

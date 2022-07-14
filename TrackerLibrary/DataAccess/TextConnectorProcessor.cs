@@ -338,6 +338,40 @@ public static class TextConnectorProcessor
         File.WriteAllLines(GlobalConfig.MatchupsFile.FullFilePath(), lines);
     }
 
+    public static void UpdateMathcupToFile(this MatchupModel matchup)
+    {
+        List<MatchupModel> matchups = GlobalConfig.MatchupsFile.FullFilePath().LoadFile().ConvertToMatchupModels();
+
+        matchups = matchups.Select(e => e.Id == matchup.Id ? matchup : e).ToList();
+
+        foreach (MatchupEntryModel entry in matchup.Entries)
+            entry.UpdateEntryToFile();
+
+        //id,entries(pipe-separated ids),winnerId,matchupRound
+        List<string> lines = new();
+        foreach (MatchupModel m in matchups)
+            lines.Add($"{m.Id}," +
+                $"{ConvertMatchupEntryListToString(m.Entries)}," +
+                $"{m.Winner?.Id}," +
+                $"{m.MatchupRound}");
+
+        File.WriteAllLines(GlobalConfig.MatchupsFile.FullFilePath(), lines);
+    }
+
+    public static void UpdateEntryToFile(this MatchupEntryModel entry)
+    {
+        List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
+         
+        entries = entries.Select(e => e.Id == entry.Id ? entry : e).ToList();
+
+        List<string> lines = new();
+
+        foreach (MatchupEntryModel e in entries)
+            lines.Add($"{e.Id},{e.TeamCompeting?.Id},{e.Score},{e.ParentMatchup?.Id}");
+
+        File.WriteAllLines(GlobalConfig.MatchupEntriesFile.FullFilePath(), lines);
+    }
+
     public static void SaveEntryToFile(this MatchupEntryModel entry)
     {
         List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();

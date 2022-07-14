@@ -14,6 +14,8 @@ public interface IDataConnection
     TeamModel CreateTeam(TeamModel teamModel);
     void CreateTournament(TournamentModel tournamentModel);
 
+    void UpdateMatchup(MatchupModel matchupModel);
+
     List<PersonModel> GetPerson_All();
     List<TeamModel> GetTeam_All();
     List<TournamentModel> GetTournament_All();
