@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,68 @@ namespace TrackerLibrary;
 //Create every round after that
 public static class TournamentLogic
 {
+    public static List<MatchupModel> GetMatchupsToScore(TournamentModel tournamentModel)
+    {
+        return tournamentModel.Rounds
+                .SelectMany(e => e)
+                .Where(m => m.Winner == null && (m.Entries.Count == 1 || m.Entries.Any(e => e.Score != 0)))
+                .ToList();
+    }
+
+    public static void UpdateTournamentResults(TournamentModel tournamentModel)
+    {
+        List<MatchupModel> matchupsToScore = GetMatchupsToScore(tournamentModel);
+
+        ScoreMatchups(matchupsToScore);
+
+        AdvanceWinners(matchupsToScore,tournamentModel);
+
+        matchupsToScore.ForEach(x => GlobalConfig.Connection.UpdateMatchup(x));
+    }
+
+    private static void AdvanceWinners(List<MatchupModel> matchups, TournamentModel tournamentModel)
+    {
+        foreach (MatchupModel matchup in matchups)
+        {
+            foreach (List<MatchupModel> round in tournamentModel.Rounds)
+            {
+                foreach (MatchupModel rm in round)
+                {
+                    foreach (MatchupEntryModel me in rm.Entries)
+                    {
+                        if (me.ParentMatchup?.Id == matchup.Id)
+                        {
+                            me.TeamCompeting = matchup.Winner;
+                            GlobalConfig.Connection.UpdateMatchup(rm);
+                        }
+                    }
+                }
+            } 
+        }
+    }
+
+    private static void ScoreMatchups(List<MatchupModel> matchups)
+    {
+
+        string greaterWins = ConfigurationManager.AppSettings["greaterWins"];
+
+        matchups.ForEach(matchup =>
+        {
+            if (matchup.Entries.Count == 2 && matchup.Entries[0].Score == matchup.Entries[1].Score)
+                throw new Exception("We do not allow ties in this application.");
+            matchup.Winner = matchup.Entries
+                        .First(e =>
+                        {
+                            //"0" for false (low score wins)
+                            if (greaterWins == "0")
+                                return e.Score == matchup.Entries.Min(ent => ent.Score);
+                            //anyhing else for true(greater score wins)
+                            return e.Score == matchup.Entries.Max(ent => ent.Score);
+
+                        }).TeamCompeting;
+        });
+    }
+
     public static void CreateRounds(TournamentModel tournamentModel)
     {
         List<TeamModel> randomizedTeams = RandomizeTeamOrder(tournamentModel.EnteredTeams);
@@ -75,6 +138,7 @@ public static class TournamentLogic
 
         return result;
     }
+
     private static int FindNumberOfByes(int teamCount, int rounds)
     {
         if (rounds <= 0) return 0;

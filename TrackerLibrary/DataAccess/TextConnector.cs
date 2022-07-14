@@ -108,6 +108,8 @@ public class TextConnector : IDataConnection
         tournaments.Add(tournamentModel);
 
         tournaments.SaveToTournamentsFile();
+
+        TournamentLogic.UpdateTournamentResults(tournamentModel);
     }
 
     /// <summary>

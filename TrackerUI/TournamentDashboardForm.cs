@@ -10,37 +10,36 @@ using System.Windows.Forms;
 using TrackerLibrary;
 using TrackerLibrary.Models;
 
-namespace TrackerUI
+namespace TrackerUI;
+
+public partial class TournamentDashboardForm : Form
 {
-    public partial class TournamentDashboardForm : Form
+    List<TournamentModel> tournaments = GlobalConfig.Connection.GetTournament_All();
+
+    public TournamentDashboardForm()
     {
-        List<TournamentModel> tournaments = GlobalConfig.Connection.GetTournament_All();
+        InitializeComponent();
 
-        public TournamentDashboardForm()
-        {
-            InitializeComponent();
+        WireUpLists();
+    }
 
-            WireUpLists();
-        }
+    private void WireUpLists()
+    {
+        loadExistingTournamentDropDown.DataSource = null;
+        loadExistingTournamentDropDown.DataSource = tournaments;
+        loadExistingTournamentDropDown.DisplayMember = "TournamentName";
+    }
 
-        private void WireUpLists()
-        {
-            loadExistingTournamentDropDown.DataSource = null;
-            loadExistingTournamentDropDown.DataSource = tournaments;
-            loadExistingTournamentDropDown.DisplayMember = "TournamentName";
-        }
+    private void createTournamentButton_Click(object sender, EventArgs e)
+    {
+        CreateTournamentForm frm = new();
+        frm.Show();
+    }
 
-        private void createTournamentButton_Click(object sender, EventArgs e)
-        {
-            CreateTournamentForm frm = new();
-            frm.Show();
-        }
-
-        private void loadTournamentButton_Click(object sender, EventArgs e)
-        {
-            TournamentModel tm = loadExistingTournamentDropDown.SelectedItem as TournamentModel;
-            TournamentViewerForm frm = new(tm);
-            frm.Show();
-        }
+    private void loadTournamentButton_Click(object sender, EventArgs e)
+    {
+        TournamentModel tm = loadExistingTournamentDropDown.SelectedItem as TournamentModel;
+        TournamentViewerForm frm = new(tm);
+        frm.Show();
     }
 }

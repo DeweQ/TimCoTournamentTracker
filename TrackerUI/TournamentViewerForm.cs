@@ -167,31 +167,10 @@ namespace TrackerUI
 
             if (!scoresAreValid)
                 return;
-            //Set a winner and mark matchup as played
-            
-            matchup.Winner = matchup.Entries.First(e => e.Score == matchup.Entries.Max(ent => ent.Score)).TeamCompeting;
 
-            /* Move somewhere else?
+            TournamentLogic.UpdateTournamentResults(tournament);
 
-            //Check if round ended and process to the next round
-            */
-            foreach (List<MatchupModel> round in tournament.Rounds)
-            {
-                foreach (MatchupModel rm in round)
-                {
-                    foreach(MatchupEntryModel me in rm.Entries)
-                    {
-                        if (me.ParentMatchup?.Id == matchup.Id)
-                        {
-                            me.TeamCompeting = matchup.Winner;
-                            GlobalConfig.Connection.UpdateMatchup(rm);
-                        }
-                    }
-                }
-            }
             LoadMatchups();
-
-            GlobalConfig.Connection.UpdateMatchup(matchup);
         }
 
         private bool ValidateScore(string score)
