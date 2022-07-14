@@ -15,10 +15,10 @@ public class SqlConnector : IDataConnection
 
     /// <summary>
     /// Saves a new person to the databse.
+    /// Updates model with id.
     /// </summary>
     /// <param name="personModel">The person information.</param>
-    /// <returns>The person information, including unique identifier</returns>
-    public PersonModel CreatePerson(PersonModel personModel)
+    public void CreatePerson(PersonModel personModel)
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
 
@@ -32,16 +32,14 @@ public class SqlConnector : IDataConnection
         connection.Execute("dbo.spPeople_Insert", p, commandType: CommandType.StoredProcedure);
 
         personModel.Id = p.Get<int>("@id");
-
-        return personModel;
     }
 
     /// <summary>
     /// Saves a new prize to the database.
+    /// Updates model with id.
     /// </summary>
     /// <param name="prizeModel">The prize information.</param>
-    /// <returns>The prize information, including the unique identifier.</returns>
-    public PrizeModel CreatePrize(PrizeModel prizeModel)
+    public void CreatePrize(PrizeModel prizeModel)
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
 
@@ -55,16 +53,14 @@ public class SqlConnector : IDataConnection
         connection.Execute("dbo.spPrizes_Insert", p, commandType: CommandType.StoredProcedure);
 
         prizeModel.Id = p.Get<int>("@id");
-
-        return prizeModel;
     }
 
     /// <summary>
     /// Saves a new team to the database.
+    /// Updates model with id.
     /// </summary>
     /// <param name="teamModel">The team information.</param>
-    /// <returns>The team information, including the unique identifier.</returns>
-    public TeamModel CreateTeam(TeamModel teamModel)
+    public void CreateTeam(TeamModel teamModel)
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
         DynamicParameters p = new();
@@ -82,15 +78,13 @@ public class SqlConnector : IDataConnection
 
             connection.Execute("dbo.spTeamMembers_Insert", p, commandType: CommandType.StoredProcedure);
         }
-
-        return teamModel;
     }
 
     /// <summary>
     /// Saves a new tournament to the database.
+    /// Updates model with id.
     /// </summary>
     /// <param name="tournamentModel">The tournament information.</param>
-    /// <returns>The tournament information, including the unique identifier.</returns>
     public void CreateTournament(TournamentModel tournamentModel)
     {
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));

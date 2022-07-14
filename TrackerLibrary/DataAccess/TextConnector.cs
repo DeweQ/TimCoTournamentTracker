@@ -11,13 +11,6 @@ namespace TrackerLibrary.DataAccess;
 
 public class TextConnector : IDataConnection
 {
-    private const string PrizesFile = "PrizeModels.csv";
-    private const string PeopleFile = "PersonModels.csv";
-    private const string TeamsFile = "TeamModels.csv";
-    private const string TournamentsFile = "TournamentModels.csv";
-    private const string MatchupsFile = "MatchupModels.csv";
-    private const string MatchupEntriesFile = "MatchupEntryModels.csv";
-
     public TextConnector()
     {
         EnsureFolderCreated();
@@ -31,14 +24,14 @@ public class TextConnector : IDataConnection
     }
 
     /// <summary>
-    /// Saves a new prize to the text file
+    /// Saves a new prize to the text file.
+    /// Updates model with id.
     /// </summary>
     /// <param name="prizeModel">The prize information.</param>
-    /// <returns>The prize information, including the unique identifier.</returns>
-    public PrizeModel CreatePrize(PrizeModel prizeModel)
+    public void CreatePrize(PrizeModel prizeModel)
     {
         //Load the text file and convert text to List<PrizeModel>
-        var prizes = PrizesFile.FullFilePath().LoadFile().ConvertToPrizeModels();
+        var prizes = GlobalConfig.PrizesFile.FullFilePath().LoadFile().ConvertToPrizeModels();
 
         //Find the ID
         int currentId = 1;
@@ -52,19 +45,17 @@ public class TextConnector : IDataConnection
 
         //Convert the prizes to List<string>
         //Save List<string> to the text file (overwrite)
-        prizes.SaveToPrizeFile(PrizesFile);
-
-        return prizeModel;
+        prizes.SaveToPrizeFile();
     }
 
     /// <summary>
     /// Saves a new person to the text file.
+    /// Updates model with id.
     /// </summary>
     /// <param name="personModel">The person information.</param>
-    /// <returns>The person information, includiong the unique identifier.</returns>
-    public PersonModel CreatePerson(PersonModel personModel)
+    public void CreatePerson(PersonModel personModel)
     {
-        List<PersonModel> persons = PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+        List<PersonModel> persons = GlobalConfig.PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
 
         int currentId = 1;
         if (persons.Count > 0)
@@ -73,19 +64,17 @@ public class TextConnector : IDataConnection
         personModel.Id = currentId;
 
         persons.Add(personModel);
-        persons.SaveToPeopleFile(PeopleFile);
-
-        return personModel;
+        persons.SaveToPeopleFile();
     }
 
     /// <summary>
     /// Saves a new team to the text file.
+    /// Updates model with id.
     /// </summary>
     /// <param name="teamModel">The team information.</param>
-    /// <returns>The team information, including the unique identifier.</returns>
-    public TeamModel CreateTeam(TeamModel teamModel)
+    public void CreateTeam(TeamModel teamModel)
     {
-        List<TeamModel> teams = TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
+        List<TeamModel> teams = GlobalConfig.TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
 
         int currentId = 1;
         if (teams.Count > 0) currentId = teams.OrderByDescending(x => x.Id).First().Id + 1;
@@ -94,9 +83,7 @@ public class TextConnector : IDataConnection
 
         teams.Add(teamModel);
 
-        teams.SaveToTeamsFile(GlobalConfig.TeamsFile);
-
-        return teamModel;
+        teams.SaveToTeamsFile();
     }
 
     /// <summary>
@@ -105,7 +92,7 @@ public class TextConnector : IDataConnection
     /// <param name="tournamentModel"></param>
     public void CreateTournament(TournamentModel tournamentModel)
     {
-        List<TournamentModel> tournaments = TournamentsFile
+        List<TournamentModel> tournaments = GlobalConfig.TournamentsFile
             .FullFilePath()
             .LoadFile()
             .ConvertToTournamentModels();
@@ -116,11 +103,11 @@ public class TextConnector : IDataConnection
 
         tournamentModel.Id = currentId;
 
-        tournamentModel.SaveRoundsToFile(MatchupsFile, MatchupEntriesFile);
+        tournamentModel.SaveRoundsToFile();
 
         tournaments.Add(tournamentModel);
 
-        tournaments.SaveToTournamentsFile(TournamentsFile);
+        tournaments.SaveToTournamentsFile();
     }
 
     /// <summary>
@@ -129,7 +116,7 @@ public class TextConnector : IDataConnection
     /// <returns>List of PersonModel containing all entries from the database.</returns>
     public List<PersonModel> GetPerson_All()
     {
-        return PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
+        return GlobalConfig.PeopleFile.FullFilePath().LoadFile().ConvertToPersonModels();
     }
 
     /// <summary>
@@ -138,7 +125,7 @@ public class TextConnector : IDataConnection
     /// <returns>List of TeamModel containing all entries from the database.</returns>
     public List<TeamModel> GetTeam_All()
     {
-        return TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
+        return GlobalConfig.TeamsFile.FullFilePath().LoadFile().ConvertToTeamModels();
     }
 
     /// <summary>

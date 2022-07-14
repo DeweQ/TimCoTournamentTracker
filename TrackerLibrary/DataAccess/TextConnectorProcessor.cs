@@ -84,8 +84,7 @@ public static class TextConnectorProcessor
         return result;
     }
 
-    public static List<TournamentModel> ConvertToTournamentModels(
-        this List<string> lines)
+    public static List<TournamentModel> ConvertToTournamentModels(this List<string> lines)
     {
         //Id,TournamentName,EntryFee,Pipe-separated TeamModel.Id, pipe-Separated PrizeModel.Id,carrot-separated sets of Matchup.Id separated by pipes
         //1,My Tournament,0.00,1|2|3|4,1|3|4,1^2^3^4|5^6|7
@@ -256,37 +255,37 @@ public static class TextConnectorProcessor
         return string.Join('|', entries.Select(e => e.Id));
     }
 
-    public static void SaveToPrizeFile(this List<PrizeModel> models, string fileName)
+    public static void SaveToPrizeFile(this List<PrizeModel> models)
     {
         List<string> lines = new();
 
         foreach (PrizeModel p in models)
             lines.Add($"{p.Id},{p.PlaceNumber},{p.PlaceName},{p.PrizeAmount},{p.PrizePercentage}");
 
-        File.WriteAllLines(fileName.FullFilePath(), lines);
+        File.WriteAllLines(GlobalConfig.PrizesFile.FullFilePath(), lines);
     }
 
-    public static void SaveToPeopleFile(this List<PersonModel> models, string fileName)
+    public static void SaveToPeopleFile(this List<PersonModel> models)
     {
         List<string> lines = new();
 
         foreach (PersonModel p in models)
             lines.Add($"{p.Id},{p.FirstName},{p.LastName},{p.EmailAdress},{p.CellphoneNumber}");
 
-        File.WriteAllLines(fileName.FullFilePath(), lines);
+        File.WriteAllLines(GlobalConfig.PeopleFile.FullFilePath(), lines);
     }
 
-    public static void SaveToTeamsFile(this List<TeamModel> models, string fileName)
+    public static void SaveToTeamsFile(this List<TeamModel> models)
     {
         List<string> lines = new();
 
         foreach (TeamModel t in models)
             lines.Add($"{t.Id},{t.TeamName},{ConvertPeopleListToString(t.TeamMembers)}");
 
-        File.WriteAllLines(fileName.FullFilePath(), lines);
+        File.WriteAllLines(GlobalConfig.TeamsFile.FullFilePath(), lines);
     }
 
-    public static void SaveToTournamentsFile(this List<TournamentModel> models, string fileName)
+    public static void SaveToTournamentsFile(this List<TournamentModel> models)
     {
         List<string> lines = new();
 
@@ -298,10 +297,10 @@ public static class TextConnectorProcessor
                 $"{ConvertPrizeListToString(tm.Prizes)}," +
                 $"{ConvertRoundsToString(tm.Rounds)}");
 
-        File.WriteAllLines(fileName.FullFilePath(), lines);
+        File.WriteAllLines(GlobalConfig.TournamentsFile.FullFilePath(), lines);
     }
 
-    public static void SaveRoundsToFile(this TournamentModel tournamentModel, string matchupsFileName, string matchupEntriesFileName)
+    public static void SaveRoundsToFile(this TournamentModel tournamentModel)
     {
         //loop through the rounds
         //loop through the matchups and save them
