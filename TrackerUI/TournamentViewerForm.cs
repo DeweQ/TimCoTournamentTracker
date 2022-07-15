@@ -14,12 +14,16 @@ namespace TrackerUI
         {
             InitializeComponent();
             tournament = tournamentModel;
+
+            tournament.OnTournamentComplete += (s, e) => this.Close();
+
             selectedMatchups.ListChanged += matchupListBox_SelectedIndexChanged;
             LoadFromData();
 
             LoadRounds();
             WireUpRounds();
             WireUpMatchups();
+
         }
 
         private void LoadFromData()

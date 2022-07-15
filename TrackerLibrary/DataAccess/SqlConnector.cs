@@ -303,4 +303,15 @@ public class SqlConnector : IDataConnection
         }
 
     }
+
+    public void CompleteTournament(TournamentModel tournamentModel)
+    {
+        //dbo.spTournaments_Complete
+        using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
+
+        DynamicParameters p = new();
+        p.Add("@id",tournamentModel.Id);
+
+        connection.Execute("dbo.spTournaments_Complete", p, commandType: CommandType.StoredProcedure);
+    }
 }

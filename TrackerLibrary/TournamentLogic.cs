@@ -51,7 +51,7 @@ public static class TournamentLogic
             {
                 foreach (PersonModel person in entry.TeamCompeting.TeamMembers)
                 {
-                    AlertPersonToNewRound(person, entry.TeamCompeting.TeamName, matchup.Entries.First(x => x.TeamCompeting != entry.TeamCompeting));
+                    AlertPersonToNewRound(person, entry.TeamCompeting.TeamName, matchup.Entries.FirstOrDefault(x => x.TeamCompeting != entry.TeamCompeting));
                 }
             }
         }
@@ -61,7 +61,7 @@ public static class TournamentLogic
     {
         if (person.EmailAddress.Length == 0) return;
 
-        string to = person.EmailAddress ;
+        string to = person.EmailAddress;
         string subject = "";
         string body = "";
         StringBuilder sb = new();
@@ -86,7 +86,7 @@ public static class TournamentLogic
         sb.AppendLine("~Tournament Tracker");
 
         body = sb.ToString();
-        
+
         EmailLogic.SendEmail(to, subject, body);
     }
 
@@ -94,17 +94,102 @@ public static class TournamentLogic
     {
         int result = 1;
 
-        //var temp = tournamentModel.Rounds.Where(r => r.All(m => m.Winner != null)).Max(r => r.First().MatchupRound);
+        var temp = tournamentModel.Rounds.Where(r => r.All(m => m.Winner != null)).Max(r => r.FirstOrDefault()?.MatchupRound);
+
+        temp = temp == null ? 1 : temp;
 
         foreach (List<MatchupModel> round in tournamentModel.Rounds)
         {
             if (round.All(m => m.Winner != null))
                 result++;
+            else
+            {
+                return result;
+            }
         }
 
+        CompleteTournament(tournamentModel);
 
+        return result - 1;
+    }
+
+    private static decimal CalculatePrizePayout(this PrizeModel prize, decimal totalIncome)
+    {
+        decimal result = 0;
+
+        if (prize.PrizeAmount > 0)
+        {
+            result = prize.PrizeAmount;
+        }
+        else
+        {
+            result = Decimal.Multiply(totalIncome, Convert.ToDecimal(prize.PrizePercentage / 100));
+        }
 
         return result;
+    }
+
+    private static void CompleteTournament(TournamentModel tournamentModel)
+    {
+
+        GlobalConfig.Connection.CompleteTournament(tournamentModel);
+
+        TeamModel winners = tournamentModel.Rounds.Last().First().Winner;
+        TeamModel runnerUp = tournamentModel.Rounds.Last().First().Entries.First(x => x.TeamCompeting != winners).TeamCompeting;
+
+        decimal winnerPrize = 0;
+        decimal runnerUpPrize = 0;
+
+
+
+        if (tournamentModel.Prizes.Count > 0)
+        {
+            decimal totalIncome = tournamentModel.EnteredTeams.Count * tournamentModel.EntryFee;
+            PrizeModel firstPlacePrize = tournamentModel.Prizes.FirstOrDefault(x => x.PlaceNumber == 1);
+            PrizeModel secondPlacePrize = tournamentModel.Prizes.FirstOrDefault(x => x.PlaceNumber == 2);
+            if (firstPlacePrize != null)
+            {
+                winnerPrize = firstPlacePrize.CalculatePrizePayout(totalIncome);
+            }
+            if (secondPlacePrize != null)
+            {
+                runnerUpPrize = secondPlacePrize.CalculatePrizePayout(totalIncome);
+            }
+        }
+
+        //Send email to all tournament competitors
+
+        string subject = "";
+        string body = "";
+        StringBuilder sb = new();
+
+        subject = $"In {tournamentModel.TournamentName}, {winners.TeamName} has won!";
+
+        sb.AppendLine("<h1>WE HAVE A WINNER!</h1>");
+        sb.AppendLine("<p>Congratulations to our winner on a great tournament.</p>");
+        if(winnerPrize>0)
+        {
+            sb.AppendLine($"<p>{winners.TeamName} will receive ${winnerPrize}</p>");
+        }
+        if(runnerUpPrize>0)
+        {
+            sb.AppendLine($"<p>{runnerUp.TeamName} will receive ${runnerUpPrize}</p>");
+        }
+        sb.AppendLine(Environment.NewLine);
+        sb.AppendLine(Environment.NewLine);
+        sb.AppendLine(Environment.NewLine);
+        sb.AppendLine("<p>Thanks for a great tournament everyone.</p>");
+        sb.AppendLine("~Tournament Tracker");
+
+        body = sb.ToString();
+
+        List<string> bcc = tournamentModel.EnteredTeams.SelectMany(x => x.TeamMembers).Select(x => x.EmailAddress).Where(x => x.Length > 0).ToList();
+
+        EmailLogic.SendEmail(new List<string>(),bcc, subject, body);
+
+        //Complete Tournament
+        tournamentModel.CompleteTournament();
+
     }
 
     private static void AdvanceWinners(List<MatchupModel> matchups, TournamentModel tournamentModel)
@@ -138,8 +223,8 @@ public static class TournamentLogic
                         .First(e =>
                         {
                             if (GlobalConfig.Settings.GreaterWins)
-                            return e.Score == matchup.Entries.Max(ent => ent.Score);
-                                return e.Score == matchup.Entries.Min(ent => ent.Score);
+                                return e.Score == matchup.Entries.Max(ent => ent.Score);
+                            return e.Score == matchup.Entries.Min(ent => ent.Score);
 
                         }).TeamCompeting;
         });

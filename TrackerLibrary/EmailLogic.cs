@@ -11,10 +11,21 @@ public static class EmailLogic
 {
     public static void SendEmail(string to, string subject, string body)
     {
+        SendEmail(new List<string>{to},new List<string>(), subject, body);
+    }
+    public static void SendEmail(List<string> to, string subject, string body)
+    {
+        SendEmail(to, new List<string>(), subject, body);
+    }
+
+
+    public static void SendEmail(List<string> to,List<string>bcc, string subject, string body)    
+    {
         MailAddress fromMailAddress = new(GlobalConfig.Settings.SenderEmail, GlobalConfig.Settings.SenderDisplayName);
 
         MailMessage mail = new();
-        mail.To.Add(to);
+        to.ForEach(x => mail.To.Add(x));
+        bcc.ForEach(x => mail.Bcc.Add(x));
         mail.From = fromMailAddress;
         mail.Subject = subject;
         mail.Body = body;

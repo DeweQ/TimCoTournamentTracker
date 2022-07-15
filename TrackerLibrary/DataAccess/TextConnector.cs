@@ -143,4 +143,18 @@ public class TextConnector : IDataConnection
     {
         matchupModel.UpdateMathcupToFile();
     }
+
+    public void CompleteTournament(TournamentModel tournamentModel)
+    {
+        List<TournamentModel> tournaments = GlobalConfig.TournamentsFile
+            .FullFilePath()
+            .LoadFile()
+            .ConvertToTournamentModels();
+
+        tournaments.Remove(tournamentModel);
+
+        tournaments.SaveToTournamentsFile();
+
+        TournamentLogic.UpdateTournamentResults(tournamentModel);
+    }
 }
