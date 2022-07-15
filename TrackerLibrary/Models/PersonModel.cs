@@ -25,7 +25,7 @@ public class PersonModel
     /// <summary>
     /// The primary email address of the person.
     /// </summary>
-    public string EmailAdress { get; set; }
+    public string EmailAddress { get; set; }
     /// <summary>
     /// The primary cell phone number of the person.
     /// </summary>

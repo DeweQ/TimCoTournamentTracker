@@ -25,7 +25,7 @@ public class SqlConnector : IDataConnection
         DynamicParameters p = new();
         p.Add("@FirstName", personModel.FirstName);
         p.Add("@LastName", personModel.LastName);
-        p.Add("@EmailAddress", personModel.EmailAdress);
+        p.Add("@EmailAddress", personModel.EmailAddress);
         p.Add(@"CellphoneNumber", personModel.CellphoneNumber);
         p.Add("@id", 0, dbType: DbType.Int32, direction: ParameterDirection.Output);
 

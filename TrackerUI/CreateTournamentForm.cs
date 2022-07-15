@@ -137,6 +137,8 @@ public partial class CreateTournamentForm : Form, IPrizeRequester, ITeamRequeste
         //Create all of the team entries
         GlobalConfig.Connection.CreateTournament(tournamentModel);
 
+        tournamentModel.AlertUsersToNewRound();
+
         TournamentViewerForm frm = new(tournamentModel);
         frm.Show();
         Close();

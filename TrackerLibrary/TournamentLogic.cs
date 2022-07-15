@@ -23,13 +23,88 @@ public static class TournamentLogic
 
     public static void UpdateTournamentResults(TournamentModel tournamentModel)
     {
+        int startingRound = tournamentModel.CheckCurrentRound();
         List<MatchupModel> matchupsToScore = GetMatchupsToScore(tournamentModel);
 
         ScoreMatchups(matchupsToScore);
 
-        AdvanceWinners(matchupsToScore,tournamentModel);
+        AdvanceWinners(matchupsToScore, tournamentModel);
 
         matchupsToScore.ForEach(x => GlobalConfig.Connection.UpdateMatchup(x));
+
+        int endingRound = tournamentModel.CheckCurrentRound();
+        if (endingRound > startingRound)
+        {
+            //alert users
+            tournamentModel.AlertUsersToNewRound();
+        }
+    }
+
+    public static void AlertUsersToNewRound(this TournamentModel tournamentModel)
+    {
+        int currentRoundNumber = tournamentModel.CheckCurrentRound();
+        List<MatchupModel> currentRound = tournamentModel.Rounds.Where(r => r.First().MatchupRound == currentRoundNumber).First();
+
+        foreach (MatchupModel matchup in currentRound)
+        {
+            foreach (MatchupEntryModel entry in matchup.Entries)
+            {
+                foreach (PersonModel person in entry.TeamCompeting.TeamMembers)
+                {
+                    AlertPersonToNewRound(person, entry.TeamCompeting.TeamName, matchup.Entries.First(x => x.TeamCompeting != entry.TeamCompeting));
+                }
+            }
+        }
+    }
+
+    private static void AlertPersonToNewRound(PersonModel person, string teamName, MatchupEntryModel competitor)
+    {
+        if (person.EmailAddress.Length == 0) return;
+
+        string to = person.EmailAddress ;
+        string subject = "";
+        string body = "";
+        StringBuilder sb = new();
+
+        if (competitor != null)
+        {
+            subject = $"You have a new matchup with {competitor.TeamCompeting.TeamName}.";
+
+            sb.AppendLine("<h1>You have a new matchup</h1>");
+            sb.Append("<strong>Competitor: </strong>");
+            sb.AppendLine(competitor.TeamCompeting.TeamName);
+            sb.AppendLine("Have a great time!");
+        }
+        else
+        {
+            subject = "You have a bye week this round.";
+            sb.AppendLine("Enjoy your free round");
+        }
+
+        sb.AppendLine();
+        sb.AppendLine();
+        sb.AppendLine("~Tournament Tracker");
+
+        body = sb.ToString();
+        
+        EmailLogic.SendEmail(to, subject, body);
+    }
+
+    private static int CheckCurrentRound(this TournamentModel tournamentModel)
+    {
+        int result = 1;
+
+        //var temp = tournamentModel.Rounds.Where(r => r.All(m => m.Winner != null)).Max(r => r.First().MatchupRound);
+
+        foreach (List<MatchupModel> round in tournamentModel.Rounds)
+        {
+            if (round.All(m => m.Winner != null))
+                result++;
+        }
+
+
+
+        return result;
     }
 
     private static void AdvanceWinners(List<MatchupModel> matchups, TournamentModel tournamentModel)
@@ -49,15 +124,12 @@ public static class TournamentLogic
                         }
                     }
                 }
-            } 
+            }
         }
     }
 
     private static void ScoreMatchups(List<MatchupModel> matchups)
     {
-
-        string greaterWins = ConfigurationManager.AppSettings["greaterWins"];
-
         matchups.ForEach(matchup =>
         {
             if (matchup.Entries.Count == 2 && matchup.Entries[0].Score == matchup.Entries[1].Score)
@@ -65,11 +137,9 @@ public static class TournamentLogic
             matchup.Winner = matchup.Entries
                         .First(e =>
                         {
-                            //"0" for false (low score wins)
-                            if (greaterWins == "0")
-                                return e.Score == matchup.Entries.Min(ent => ent.Score);
-                            //anyhing else for true(greater score wins)
+                            if (GlobalConfig.Settings.GreaterWins)
                             return e.Score == matchup.Entries.Max(ent => ent.Score);
+                                return e.Score == matchup.Entries.Min(ent => ent.Score);
 
                         }).TeamCompeting;
         });

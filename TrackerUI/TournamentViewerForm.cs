@@ -168,7 +168,15 @@ namespace TrackerUI
             if (!scoresAreValid)
                 return;
 
-            TournamentLogic.UpdateTournamentResults(tournament);
+            try
+            {
+                TournamentLogic.UpdateTournamentResults(tournament);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"The application had the folllowing error: {ex.Message}");
+                return;
+            }
 
             LoadMatchups();
         }

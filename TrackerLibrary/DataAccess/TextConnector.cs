@@ -18,7 +18,7 @@ public class TextConnector : IDataConnection
 
     private static void EnsureFolderCreated()
     {
-        string path = ConfigurationManager.AppSettings["filePath"];
+        string path = GlobalConfig.Settings.FilePath;
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
     }

@@ -12,7 +12,7 @@ public static class TextConnectorProcessor
 {
     public static string FullFilePath(this string fileName)
     {
-        return $"{ConfigurationManager.AppSettings["filePath"]}\\{fileName}";
+        return $"{GlobalConfig.Settings.FilePath}\\{fileName}";
     }
 
     public static List<string> LoadFile(this string file)
@@ -53,7 +53,7 @@ public static class TextConnectorProcessor
             p.Id = int.Parse(columns[0]);
             p.FirstName = columns[1];
             p.LastName = columns[2];
-            p.EmailAdress = columns[3];
+            p.EmailAddress = columns[3];
             p.CellphoneNumber = columns[4];
 
             result.Add(p);
@@ -270,7 +270,7 @@ public static class TextConnectorProcessor
         List<string> lines = new();
 
         foreach (PersonModel p in models)
-            lines.Add($"{p.Id},{p.FirstName},{p.LastName},{p.EmailAdress},{p.CellphoneNumber}");
+            lines.Add($"{p.Id},{p.FirstName},{p.LastName},{p.EmailAddress},{p.CellphoneNumber}");
 
         File.WriteAllLines(GlobalConfig.PeopleFile.FullFilePath(), lines);
     }
