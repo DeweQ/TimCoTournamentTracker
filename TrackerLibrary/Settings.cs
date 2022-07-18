@@ -10,4 +10,5 @@ public class Settings
     public string SenderDisplayName { get; init; }
     public IReadOnlyDictionary<string,string> ConnectionStrings { get; init; }
     public SmtpClient smtp { get; init; }
+    public DatabaseType DatabaseType { get; init; }
 }

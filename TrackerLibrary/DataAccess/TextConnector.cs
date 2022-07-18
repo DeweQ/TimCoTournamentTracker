@@ -151,10 +151,10 @@ public class TextConnector : IDataConnection
             .LoadFile()
             .ConvertToTournamentModels();
 
-        tournaments.Remove(tournamentModel);
+        tournaments = tournaments.Where(t => t.Id != tournamentModel.Id).ToList();
 
         tournaments.SaveToTournamentsFile();
 
-        TournamentLogic.UpdateTournamentResults(tournamentModel);
+        //TournamentLogic.UpdateTournamentResults(tournamentModel);
     }
 }

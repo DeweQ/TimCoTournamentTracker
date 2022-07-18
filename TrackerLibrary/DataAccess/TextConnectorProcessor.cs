@@ -183,71 +183,27 @@ public static class TextConnectorProcessor
 
     private static string ConvertPeopleListToString(List<PersonModel> people)
     {
-        //Low: refactor repeating code
-        string result = string.Empty;
-
-        if (people.Count == 0) return result;
-
-        foreach (PersonModel p in people)
-            result += $"{p.Id}|";
-
-        result = result.TrimEnd('|');
-
-        return result;
+        return String.Join('|', people.Select(p => p.Id));
     }
 
     private static string ConvertMatchupListToString(List<MatchupModel> matchups)
     {
-        //Low: refactor repeating code
-
-        string result = string.Empty;
         return string.Join('^',matchups.Select(x => x.Id));
     }
 
     private static string ConvertRoundsToString(List<List<MatchupModel>> rounds)
     {
-        //Low: refactor repeating code
-        string result = string.Empty;
-
-        if (rounds.Count == 0) return result;
-
-        foreach (List<MatchupModel> r in rounds)
-            result += $"{ConvertMatchupListToString(r)}|";
-
-        result = result.TrimEnd('|');
-
-        return result;
+        return String.Join('|', rounds.Select(r => ConvertMatchupListToString(r)));
     }
 
     private static string ConvertPrizeListToString(List<PrizeModel> prizes)
     {
-        //Low: refactor repeating code
-        string result = string.Empty;
-
-        if (prizes.Count == 0) return result;
-
-        foreach (PrizeModel p in prizes)
-            result += $"{p?.Id}|";
-
-        result = result.TrimEnd('|');
-
         return string.Join('|', prizes.Select(p => p.Id));
     }
 
     private static string ConvertTeamListToString(List<TeamModel> teams)
     {
-        //Low: refactor repeating code
-
-        string result = string.Empty;
-
-        if (teams.Count == 0) return result;
-
-        foreach (TeamModel t in teams)
-            result += $"{t.Id}|";
-
-        result = result.TrimEnd('|');
-
-        return result;
+        return String.Join('|',teams.Select(t => t.Id));
     }
 
     private static string ConvertMatchupEntryListToString(List<MatchupEntryModel> entries)
