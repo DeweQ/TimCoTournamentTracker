@@ -12,6 +12,9 @@ public class TeamValidator :AbstractValidator<TeamModel>
 {
     public TeamValidator()
     {
+        ClassLevelCascadeMode = CascadeMode.Continue;
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
         RuleFor(team => team.TeamName)
             .NotEmpty()
             .Must(ExcludePipeCharacter)

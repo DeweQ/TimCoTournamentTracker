@@ -1,5 +1,8 @@
-﻿using TrackerLibrary;
+﻿using FluentValidation.Results;
+using System.Text;
+using TrackerLibrary;
 using TrackerLibrary.Models;
+using TrackerLibrary.Validators;
 
 namespace TrackerUI
 {
@@ -15,26 +18,27 @@ namespace TrackerUI
 
         private void createPrizeButton_Click(object sender, EventArgs e)
         {
-            if (ValidateForm())
+            PrizeModel model = new PrizeModel(
+                placeNameValue.Text,
+                placeNumberValue.Text,
+                prizeAmountValue.Text,
+                prizePercentageValue.Text);
+
+            PrizeValidator validator = new();
+            ValidationResult result = validator.Validate(model);
+
+            if (!result.IsValid)
             {
-                PrizeModel model = new PrizeModel(
-                    placeNameValue.Text,
-                    placeNumberValue.Text,
-                    prizeAmountValue.Text,
-                    prizePercentageValue.Text);
-
-                GlobalConfig.Connection.CreatePrize(model);
-
-                callingForm.PrizeComplete(model);
-                this.Close();
-
-                //placeNameValue.Text = string.Empty;
-                //placeNumberValue.Text = string.Empty;
-                //prizeAmountValue.Text = "0";
-                //prizePercentageValue.Text = "0";
+                StringBuilder sb = new();
+                result.Errors.Select(e => e.ErrorMessage).ToList().ForEach(e => sb.AppendLine(e));
+                MessageBox.Show(sb.ToString(), "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else
-                MessageBox.Show("This form has invalid information. Please check it and try again.");
+            
+            GlobalConfig.Connection.CreatePrize(model);
+
+            callingForm.PrizeComplete(model);
+            this.Close();
         }
 
         private bool ValidateForm()
