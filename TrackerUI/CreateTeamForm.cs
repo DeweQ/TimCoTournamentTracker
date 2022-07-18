@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation.Results;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using TrackerLibrary;
 using TrackerLibrary.Models;
+using TrackerLibrary.Validators;
 
 namespace TrackerUI
 {
@@ -31,11 +33,7 @@ namespace TrackerUI
 
         private void CreateSampleData()
         {
-            availableTeamMembers.Add(new PersonModel { FirstName = "Frodo", LastName = "Baggins" });
-            availableTeamMembers.Add(new PersonModel { FirstName = "Samwise", LastName = "Gamgee" });
 
-            selectedTeamMembers.Add(new PersonModel { FirstName = "Gendalf", LastName = "The Grey" });
-            selectedTeamMembers.Add(new PersonModel { FirstName = "Saruman", LastName = "The White" });
         }
 
         private void WireUpLists()
@@ -69,27 +67,35 @@ namespace TrackerUI
 
         private void createMemberButton_Click(object sender, EventArgs e)
         {
-            if (ValidateForm())
+            PersonModel p = new();
+
+            p.FirstName = firstNameValue.Text;
+            p.LastName = lastNameValue.Text;
+            p.EmailAddress = emailAdressValue.Text;
+            p.CellphoneNumber = cellphoneValue.Text;
+
+            PersonValidator validator = new();
+
+            ValidationResult result = validator.Validate(p);
+
+            if (!result.IsValid)
             {
-                PersonModel p = new();
-
-                p.FirstName = firstNameValue.Text;
-                p.LastName = lastNameValue.Text;
-                p.EmailAddress = emailAdressValue.Text;
-                p.CellphoneNumber = cellphoneValue.Text;
-
-                GlobalConfig.Connection.CreatePerson(p);
-
-                selectedTeamMembers.Add(p);
-
-                WireUpLists();
-
-                firstNameValue.Text = string.Empty;
-                lastNameValue.Text = string.Empty;
-                emailAdressValue.Text = string.Empty;
-                cellphoneValue.Text = string.Empty;
+                StringBuilder sb = new();
+                result.Errors.Select(e => e.ErrorMessage).ToList().ForEach(e => sb.AppendLine(e));
+                MessageBox.Show(sb.ToString(), "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            else MessageBox.Show("You need to fill in all of the fields.");
+
+            GlobalConfig.Connection.CreatePerson(p);
+
+            selectedTeamMembers.Add(p);
+
+            WireUpLists();
+
+            firstNameValue.Text = string.Empty;
+            lastNameValue.Text = string.Empty;
+            emailAdressValue.Text = string.Empty;
+            cellphoneValue.Text = string.Empty;
         }
 
         private void addTeamMemberButton_Click(object sender, EventArgs e)
