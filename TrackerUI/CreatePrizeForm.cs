@@ -18,6 +18,12 @@ namespace TrackerUI
 
         private void createPrizeButton_Click(object sender, EventArgs e)
         {
+            if(!NumberFieldsAreActualNumbers())
+            {
+                MessageBox.Show("'Prize Amount', 'Prize Percentage': must be numbers.", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             PrizeModel model = new PrizeModel(
                 placeNameValue.Text,
                 placeNumberValue.Text,
@@ -41,31 +47,13 @@ namespace TrackerUI
             this.Close();
         }
 
-        private bool ValidateForm()
+        private bool NumberFieldsAreActualNumbers()
         {
             bool result = true;
 
-            bool placeNumberIsNumber = int.TryParse(placeNumberValue.Text, out int placeNumber);
-            bool placeNumberValidNumber = placeNumber > 0;
+            if (!double.TryParse(prizePercentageValue.Text, out double p)) result = false;
 
-            if (!placeNumberIsNumber || !placeNumberValidNumber)
-                result = false;
-
-            if (placeNameValue.Text.Length == 0)
-                result = false;
-
-
-            bool prizeAmountValid = decimal.TryParse(prizeAmountValue.Text, out decimal prizeAmount);
-            bool prizePercentageValid = double.TryParse(prizePercentageValue.Text, out double prizePercentage);
-
-            if (!prizeAmountValid || !prizePercentageValid)
-                result = false;
-
-            if (prizeAmount <= 0 && prizePercentage <= 0)
-                result = false;
-
-            if (prizePercentage < 0 || prizePercentage > 100)
-                result = false;
+            if (!decimal.TryParse(prizeAmountValue.Text, out decimal a)) result = false;
 
             return result;
         }
