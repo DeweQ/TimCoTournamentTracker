@@ -17,15 +17,22 @@ public class TeamValidator :AbstractValidator<TeamModel>
 
         RuleFor(team => team.TeamName)
             .NotEmpty()
-            .Must(ExcludePipeCharacter)
-            .WithMessage("'{PropertyName}' must not contain '|' character.");
+            .Must(ExcludeSpecialCharacters)
+            .WithMessage("'{PropertyName}' must not contain characters: ',', '|', '^'.");
 
         RuleFor(team => team.TeamMembers)
             .NotEmpty();
     }
 
-    private bool ExcludePipeCharacter(string input)
+    private bool ExcludeSpecialCharacters(string name)
     {
-        return !input.Contains('|');
+        bool result = true;
+
+        if (name.Contains(',') ||
+            name.Contains('|') ||
+            name.Contains('^'))
+            result = false;
+
+        return result;
     }
 }
