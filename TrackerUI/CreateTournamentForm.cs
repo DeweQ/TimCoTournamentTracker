@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentValidation.Results;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using TrackerLibrary;
 using TrackerLibrary.Models;
+using TrackerLibrary.Validators;
 
 namespace TrackerUI;
 
@@ -117,10 +119,10 @@ public partial class CreateTournamentForm : Form, IPrizeRequester, ITeamRequeste
         if (!feeValid)
         {
             MessageBox.Show(
-                "You need to enter a valid Entry Fee.",
-                "Invalid Fee",
+                "'Entry Fee' must be a number.",
+                "Validation Error",
                 MessageBoxButtons.OK,
-                MessageBoxIcon.Error);
+                MessageBoxIcon.Warning);
             return;
         }
         //Create tournament model
@@ -129,6 +131,14 @@ public partial class CreateTournamentForm : Form, IPrizeRequester, ITeamRequeste
         tournamentModel.EntryFee = fee;
         tournamentModel.Prizes = selectedPrizes;
         tournamentModel.EnteredTeams = selectedTeams;
+
+        TournamentValidator validator = new();
+        ValidationResult result = validator.Validate(tournamentModel);
+        if (!result.IsValid)
+        {
+            ShowErrors(result);
+            return;
+        }
 
         TournamentLogic.CreateRounds(tournamentModel);
         
@@ -142,5 +152,11 @@ public partial class CreateTournamentForm : Form, IPrizeRequester, ITeamRequeste
         TournamentViewerForm frm = new(tournamentModel);
         frm.Show();
         Close();
+    }
+    private static void ShowErrors(ValidationResult result)
+    {
+        StringBuilder sb = new();
+        result.Errors.Select(e => e.ErrorMessage).ToList().ForEach(e => sb.AppendLine(e));
+        MessageBox.Show(sb.ToString(), "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
     }
 }
