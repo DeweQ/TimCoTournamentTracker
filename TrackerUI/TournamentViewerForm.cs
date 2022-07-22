@@ -195,7 +195,6 @@ namespace TrackerUI
         private void unplayedOnlyCheckBox_CheckedChanged(object sender, EventArgs e)
         {
             LoadMatchups();
-
         }
     }
 }

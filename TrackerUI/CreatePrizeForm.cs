@@ -35,16 +35,21 @@ namespace TrackerUI
 
             if (!result.IsValid)
             {
-                StringBuilder sb = new();
-                result.Errors.Select(e => e.ErrorMessage).ToList().ForEach(e => sb.AppendLine(e));
-                MessageBox.Show(sb.ToString(), "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                ShowErrors(result);
                 return;
             }
-            
+
             GlobalConfig.Connection.CreatePrize(model);
 
             callingForm.PrizeComplete(model);
             this.Close();
+        }
+
+        private static void ShowErrors(ValidationResult result)
+        {
+            StringBuilder sb = new();
+            result.Errors.Select(e => e.ErrorMessage).ToList().ForEach(e => sb.AppendLine(e));
+            MessageBox.Show(sb.ToString(), "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
         private bool NumberFieldsAreActualNumbers()
