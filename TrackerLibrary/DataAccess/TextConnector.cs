@@ -154,7 +154,5 @@ public class TextConnector : IDataConnection
         tournaments = tournaments.Where(t => t.Id != tournamentModel.Id).ToList();
 
         tournaments.SaveToTournamentsFile();
-
-        //TournamentLogic.UpdateTournamentResults(tournamentModel);
     }
 }

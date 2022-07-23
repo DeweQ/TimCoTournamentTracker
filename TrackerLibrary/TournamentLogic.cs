@@ -35,8 +35,12 @@ public static class TournamentLogic
         int endingRound = tournamentModel.CheckCurrentRound();
         if (endingRound > startingRound)
         {
-            //alert users
             tournamentModel.AlertUsersToNewRound();
+        }
+
+        if (tournamentModel.Rounds.SelectMany(e => e).All(e => e.Winner != null))
+        {
+            CompleteTournament(tournamentModel);
         }
     }
 
@@ -51,13 +55,13 @@ public static class TournamentLogic
             {
                 foreach (PersonModel person in entry.TeamCompeting.TeamMembers)
                 {
-                    AlertPersonToNewRound(person, entry.TeamCompeting.TeamName, matchup.Entries.FirstOrDefault(x => x.TeamCompeting != entry.TeamCompeting));
+                    SendNewRoundNotification(person, entry.TeamCompeting.TeamName, matchup.Entries.FirstOrDefault(x => x.TeamCompeting != entry.TeamCompeting));
                 }
             }
         }
     }
 
-    private static void AlertPersonToNewRound(PersonModel person, string teamName, MatchupEntryModel competitor)
+    private static void SendNewRoundNotification(PersonModel person, string teamName, MatchupEntryModel competitor)
     {
         if (person.EmailAddress.Length == 0) return;
 
@@ -71,18 +75,18 @@ public static class TournamentLogic
             subject = $"You have a new matchup with {competitor.TeamCompeting.TeamName}.";
 
             sb.AppendLine("<h1>You have a new matchup</h1>");
-            sb.Append("<strong>Competitor: </strong>");
-            sb.AppendLine(competitor.TeamCompeting.TeamName);
+            sb.Append("<p><strong>Competitor: </strong>");
+            sb.AppendLine($"{competitor.TeamCompeting.TeamName}</p>");
             sb.AppendLine("Have a great time!");
         }
         else
         {
             subject = "You have a bye week this round.";
-            sb.AppendLine("Enjoy your free round");
+            sb.AppendLine("<p>Enjoy your free round</p>");
         }
-
-        sb.AppendLine();
-        sb.AppendLine();
+        sb.AppendLine("<p></p>");
+        sb.AppendLine("<p></p>");
+        sb.AppendLine("<p></p>");
         sb.AppendLine("~Tournament Tracker");
 
         body = sb.ToString();
@@ -90,57 +94,69 @@ public static class TournamentLogic
         EmailLogic.SendEmail(to, subject, body);
     }
 
-    private static int CheckCurrentRound(this TournamentModel tournamentModel)
+    public static int CheckCurrentRound(this TournamentModel tournamentModel)
     {
         int result = 1;
 
-        var temp = tournamentModel.Rounds.Where(r => r.All(m => m.Winner != null)).Max(r => r.FirstOrDefault()?.MatchupRound);
-
-        temp = temp == null ? 1 : temp;
-
         foreach (List<MatchupModel> round in tournamentModel.Rounds)
         {
-            if (round.All(m => m.Winner != null))
-                result++;
-            else
-            {
-                return result;
-            }
+            if (round.All(m => m.Winner != null)) result++;
+            else return result;
         }
-
-        CompleteTournament(tournamentModel);
 
         return result - 1;
     }
 
-    private static decimal CalculatePrizePayout(this PrizeModel prize, decimal totalIncome)
-    {
-        decimal result = 0;
-
-        if (prize.PrizeAmount > 0)
-        {
-            result = prize.PrizeAmount;
-        }
-        else
-        {
-            result = Decimal.Multiply(totalIncome, Convert.ToDecimal(prize.PrizePercentage / 100));
-        }
-
-        return result;
-    }
-
     private static void CompleteTournament(TournamentModel tournamentModel)
     {
-
         GlobalConfig.Connection.CompleteTournament(tournamentModel);
+        //Get list of winners and prizes.
+        List<Winner> winners = CalculatePrizes(tournamentModel);
+        //Send email to all tournament competitors.
+        SendTournamentCompletionNotification(tournamentModel, winners);
+        //Invoke tournament completion event
+        tournamentModel.CompleteTournament();
 
+    }
+
+    private static void SendTournamentCompletionNotification(TournamentModel tournamentModel, List<Winner> winners)
+    {
+        string subject = "";
+        string body = "";
+        StringBuilder sb = new();
+
+        subject = $"In {tournamentModel.TournamentName}, {winners[0].Team.TeamName} has won!";
+
+        sb.AppendLine("<h1>WE HAVE A WINNER!</h1>");
+        sb.AppendLine("<p>Congratulations to our winner on a great tournament.</p>");
+        if (winners[0].TotalPrizeAmount > 0)
+        {
+            sb.AppendLine($"<p>{winners[0].Team.TeamName} will receive ${winners[0].TotalPrizeAmount}</p>");
+        }
+        if (winners[1].TotalPrizeAmount > 0)
+        {
+            sb.AppendLine($"<p>{winners[1].Team.TeamName} will receive ${winners[1].TotalPrizeAmount}</p>");
+        }
+        sb.AppendLine("<p></p>");
+        sb.AppendLine("<p></p>");
+        sb.AppendLine("<p></p>");
+        sb.AppendLine("<p>Thanks for a great tournament everyone.</p>");
+        sb.AppendLine("~Tournament Tracker");
+
+        body = sb.ToString();
+
+        List<string> bcc = tournamentModel.EnteredTeams.SelectMany(x => x.TeamMembers).Select(x => x.EmailAddress).Where(x => x.Length > 0).ToList();
+
+        EmailLogic.SendEmail(new List<string>(), bcc, subject, body);
+    }
+
+    private static List<Winner> CalculatePrizes(TournamentModel tournamentModel)
+    {
+        List<Winner> result = new();
         TeamModel winners = tournamentModel.Rounds.Last().First().Winner;
         TeamModel runnerUp = tournamentModel.Rounds.Last().First().Entries.First(x => x.TeamCompeting != winners).TeamCompeting;
-
         decimal winnerPrize = 0;
         decimal runnerUpPrize = 0;
-
-
 
         if (tournamentModel.Prizes.Count > 0)
         {
@@ -157,39 +173,25 @@ public static class TournamentLogic
             }
         }
 
-        //Send email to all tournament competitors
+        result.Add(new(winners, winnerPrize));
+        result.Add(new(runnerUp, runnerUpPrize));
+        return result;
+    }
 
-        string subject = "";
-        string body = "";
-        StringBuilder sb = new();
+    private static decimal CalculatePrizePayout(this PrizeModel prize, decimal totalIncome)
+    {
+        decimal result = 0;
 
-        subject = $"In {tournamentModel.TournamentName}, {winners.TeamName} has won!";
-
-        sb.AppendLine("<h1>WE HAVE A WINNER!</h1>");
-        sb.AppendLine("<p>Congratulations to our winner on a great tournament.</p>");
-        if(winnerPrize>0)
+        if (prize.PrizeAmount > 0)
         {
-            sb.AppendLine($"<p>{winners.TeamName} will receive ${winnerPrize}</p>");
+            result = prize.PrizeAmount;
         }
-        if(runnerUpPrize>0)
+        else
         {
-            sb.AppendLine($"<p>{runnerUp.TeamName} will receive ${runnerUpPrize}</p>");
+            result = Decimal.Multiply(totalIncome, Convert.ToDecimal(prize.PrizePercentage / 100));
         }
-        sb.AppendLine(Environment.NewLine);
-        sb.AppendLine(Environment.NewLine);
-        sb.AppendLine(Environment.NewLine);
-        sb.AppendLine("<p>Thanks for a great tournament everyone.</p>");
-        sb.AppendLine("~Tournament Tracker");
 
-        body = sb.ToString();
-
-        List<string> bcc = tournamentModel.EnteredTeams.SelectMany(x => x.TeamMembers).Select(x => x.EmailAddress).Where(x => x.Length > 0).ToList();
-
-        EmailLogic.SendEmail(new List<string>(),bcc, subject, body);
-
-        //Complete Tournament
-        tournamentModel.CompleteTournament();
-
+        return result;
     }
 
     private static void AdvanceWinners(List<MatchupModel> matchups, TournamentModel tournamentModel)
@@ -265,7 +267,6 @@ public static class TournamentLogic
             previousRound = currentRound;
             currentRound = new();
         }
-
     }
 
     private static List<MatchupModel> CreateFirstRound(List<TeamModel> teams, int byes)
@@ -284,12 +285,9 @@ public static class TournamentLogic
                 current.MatchupRound = 1;
                 result.Add(current);
                 current = new();
-
-                byes = byes > 0 ? byes - 1 : byes;
+                byes--;
             }
         }
-
-
 
         return result;
     }

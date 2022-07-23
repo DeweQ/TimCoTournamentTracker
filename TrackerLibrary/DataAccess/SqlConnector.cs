@@ -102,7 +102,6 @@ public class SqlConnector : IDataConnection
 
     private void SaveTournamentRounds(TournamentModel tournamentModel, IDbConnection connection)
     {
-        //Low: refoctor long method
         //loop through the rounds
         //loop through the matchups and save them
         //loop through the entries and save them
@@ -205,10 +204,11 @@ public class SqlConnector : IDataConnection
     public List<TournamentModel> GetTournament_All()
     {
         //Get list of all active tournaments
-
-
         using IDbConnection connection = new System.Data.SqlClient.SqlConnection(GlobalConfig.CnnString(db));
         List<TournamentModel> result = connection.Query<TournamentModel>("dbo.spTournaments_GetAll").ToList();
+
+        List<TeamModel> allTeams = GetTeam_All();
+
         foreach (TournamentModel tournament in result)
         {
             DynamicParameters p = new();
@@ -218,14 +218,9 @@ public class SqlConnector : IDataConnection
             tournament.Prizes = connection.Query<PrizeModel>("dbo.spPrizes_GetByTournament", p, commandType: CommandType.StoredProcedure).ToList();
 
             //Populate teams
-            tournament.EnteredTeams = connection.Query<TeamModel>("dbo.spTeams_GetByTournament", p, commandType: CommandType.StoredProcedure).ToList();
-            foreach (TeamModel team in tournament.EnteredTeams)
-            {
-                DynamicParameters parameters = new();
-                parameters.Add("@TeamId", team.Id);
-                team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam", parameters, commandType: CommandType.StoredProcedure).ToList();
-            }
-
+            List<int> teamIds  = connection.Query<TeamModel>("dbo.spTeams_GetByTournament", p, commandType: CommandType.StoredProcedure).Select(x => x.Id).ToList();
+            tournament.EnteredTeams = allTeams.Where(x => teamIds.Contains(x.Id)).ToList();
+            
             //Load all matchups
             List<MatchupModel> matchups = connection.Query<MatchupModel>("dbo.spMatchups_GetByTournament", p, commandType: CommandType.StoredProcedure).ToList();
             foreach (MatchupModel matchup in matchups)
@@ -234,10 +229,7 @@ public class SqlConnector : IDataConnection
                 parameters.Add("@MatchupId", matchup.Id);
 
                 //populate winner Team
-
                 matchup.Entries = connection.Query<MatchupEntryModel>("dbo.spMatchupEntries_GetByMatchup", parameters, commandType: CommandType.StoredProcedure).ToList();
-
-                List<TeamModel> allTeams = GetTeam_All();
 
                 matchup.Winner = allTeams.FirstOrDefault(e => e.Id == matchup.WinnerId);
                 foreach (MatchupEntryModel entry in matchup.Entries)
@@ -245,33 +237,10 @@ public class SqlConnector : IDataConnection
                     entry.TeamCompeting = allTeams.FirstOrDefault(e => e.Id == entry.TeamCompetingId);
                     entry.ParentMatchup = matchups.FirstOrDefault(e => e.Id == entry.ParentMatchupId);
                 }
-
             }
-
             //Populate rounds
             tournament.Rounds = matchups.GroupBy(e => e.MatchupRound).OrderBy(e => e.Key).Select(e => e.ToList()).ToList();
-
-            //List<MatchupModel> currentRound = new();
-            //int currentRoundNumber = 1;
-            //foreach (MatchupModel matchup in matchups)
-            //{
-            //    if(matchup.MatchupRound > currentRoundNumber)
-            //    {
-            //        tournament.Rounds.Add(currentRound);
-            //        currentRound = new();
-            //        currentRoundNumber++;
-            //    }
-            //    currentRound.Add(matchup);
-            //}
-            //tournament.Rounds.Add(currentRound);
         }
-        //foreach (TeamModel team in result)
-        //{
-        //    DynamicParameters p = new();
-        //    p.Add("@TeamId", team.Id);
-        //    team.TeamMembers = connection.Query<PersonModel>("dbo.spTeamMembers_GetByTeam", p, commandType: CommandType.StoredProcedure).ToList();
-        //}
-
         return result;
     }
 

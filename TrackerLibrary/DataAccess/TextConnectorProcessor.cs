@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using TrackerLibrary.Models;
 
 namespace TrackerLibrary.DataAccess.TextHelpers;
-//Low: add comments
+
 public static class TextConnectorProcessor
 {
     public static string FullFilePath(this string fileName)
@@ -29,12 +29,14 @@ public static class TextConnectorProcessor
         foreach (var line in lines)
         {
             string[] columns = line.Split(',');
-            PrizeModel p = new();
-            p.Id = int.Parse(columns[0]);
-            p.PlaceNumber = int.Parse(columns[1]);
-            p.PlaceName = columns[2];
-            p.PrizeAmount = decimal.Parse(columns[3]);
-            p.PrizePercentage = double.Parse(columns[4]);
+            PrizeModel p = new()
+            {
+                Id = int.Parse(columns[0]),
+                PlaceNumber = int.Parse(columns[1]),
+                PlaceName = columns[2],
+                PrizeAmount = decimal.Parse(columns[3]),
+                PrizePercentage = double.Parse(columns[4])
+            };
 
             result.Add(p);
         }
@@ -49,12 +51,14 @@ public static class TextConnectorProcessor
         foreach (var line in lines)
         {
             string[] columns = line.Split(',');
-            PersonModel p = new();
-            p.Id = int.Parse(columns[0]);
-            p.FirstName = columns[1];
-            p.LastName = columns[2];
-            p.EmailAddress = columns[3];
-            p.CellphoneNumber = columns[4];
+            PersonModel p = new()
+            {
+                Id = int.Parse(columns[0]),
+                FirstName = columns[1],
+                LastName = columns[2],
+                EmailAddress = columns[3],
+                CellphoneNumber = columns[4]
+            };
 
             result.Add(p);
         }
@@ -77,10 +81,11 @@ public static class TextConnectorProcessor
             string[] personIds = columns[2].Split('|');
 
             foreach (string id in personIds)
-                t.TeamMembers.Add(persons.Where(x => x.Id == int.Parse(id)).First());
+                t.TeamMembers.Add(persons.First(x => x.Id == int.Parse(id)));
 
             result.Add(t);
         }
+
         return result;
     }
 
@@ -98,20 +103,25 @@ public static class TextConnectorProcessor
         {
             string[] columns = line.Split(',');
 
-            TournamentModel tm = new();
-            tm.Id = int.Parse(columns[0]);
-            tm.TournamentName = columns[1];
-            tm.EntryFee = decimal.Parse(columns[2]);
+            TournamentModel tm = new()
+            {
+                Id = int.Parse(columns[0]),
+                TournamentName = columns[1],
+                EntryFee = decimal.Parse(columns[2])
+            };
 
+            //Populate teams.
             string[] teamIds = columns[3].Split('|');
             foreach (string id in teamIds)
                 tm.EnteredTeams.Add(teams.Where(x => x.Id == int.Parse(id)).First());
 
+            //Populate prizes.
             string[] prizeIds = columns[4].Split('|');
             foreach (string id in prizeIds)
                 if (int.TryParse(id, out int parsedId))
                     tm.Prizes.Add(prizes.First(e => e.Id == parsedId));
 
+            //Populate matchups.
             string[] rounds = columns[5].Split('|');
             foreach (string round in rounds)
             {
@@ -159,13 +169,15 @@ public static class TextConnectorProcessor
         {
             string[] columns = line.Split(',');
 
-            MatchupEntryModel me = new();
-            me.Id = int.Parse(columns[0]);
-            me.TeamCompeting = int.TryParse(columns[1],out int teamCompeting)?
-                LookupTeamById(teamCompeting):null;
-            me.Score = double.Parse(columns[2]);
-            me.ParentMatchup = int.TryParse(columns[3], out int id) ?
-                LookupMatchupById(id) : null;
+            MatchupEntryModel me = new()
+            {
+                Id = int.Parse(columns[0]),
+                TeamCompeting = int.TryParse(columns[1], out int teamCompeting) ?
+                LookupTeamById(teamCompeting) : null,
+                Score = double.Parse(columns[2]),
+                ParentMatchup = int.TryParse(columns[3], out int id) ?
+                LookupMatchupById(id) : null
+            };
 
             result.Add(me);
         }
@@ -293,6 +305,26 @@ public static class TextConnectorProcessor
         File.WriteAllLines(GlobalConfig.MatchupsFile.FullFilePath(), lines);
     }
 
+    public static void SaveEntryToFile(this MatchupEntryModel entry)
+
+    {
+        List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
+
+        int currentId = 1;
+        if (entries.Count > 0)
+            currentId = entries.OrderByDescending(x => x.Id).First().Id + 1;
+
+        entry.Id = currentId;
+
+        entries.Add(entry);
+
+        List<string> lines = new();
+
+        foreach (MatchupEntryModel e in entries)
+            lines.Add($"{e.Id},{e.TeamCompeting?.Id},{e.Score},{e.ParentMatchup?.Id}");
+
+        File.WriteAllLines(GlobalConfig.MatchupEntriesFile.FullFilePath(), lines);
+    }
     public static void UpdateMathcupToFile(this MatchupModel matchup)
     {
         List<MatchupModel> matchups = GlobalConfig.MatchupsFile.FullFilePath().LoadFile().ConvertToMatchupModels();
@@ -318,26 +350,6 @@ public static class TextConnectorProcessor
         List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
          
         entries = entries.Select(e => e.Id == entry.Id ? entry : e).ToList();
-
-        List<string> lines = new();
-
-        foreach (MatchupEntryModel e in entries)
-            lines.Add($"{e.Id},{e.TeamCompeting?.Id},{e.Score},{e.ParentMatchup?.Id}");
-
-        File.WriteAllLines(GlobalConfig.MatchupEntriesFile.FullFilePath(), lines);
-    }
-
-    public static void SaveEntryToFile(this MatchupEntryModel entry)
-    {
-        List<MatchupEntryModel> entries = GlobalConfig.MatchupEntriesFile.FullFilePath().LoadFile().ConvertToMatchupEntryModels();
-
-        int currentId = 1;
-        if (entries.Count > 0)
-            currentId = entries.OrderByDescending(x => x.Id).First().Id + 1;
-
-        entry.Id = currentId;
-
-        entries.Add(entry);
 
         List<string> lines = new();
 
