@@ -159,9 +159,10 @@ namespace TrackerUI
         {
             MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
 
-            if (matchup.Entries.Any(e => e.TeamCompeting == null))
+            if (matchup.Entries.Any(e => e.TeamCompeting == null)
+                || matchup.MatchupRound != tournament.CheckCurrentRound())
             {
-                MessageBox.Show("Cant score this match yet.");
+                MessageBox.Show("Cant score this match.");
                 return;
             }
             //Validate inputs?
