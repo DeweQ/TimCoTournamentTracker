@@ -15,7 +15,7 @@ namespace TrackerUI
             InitializeComponent();
             tournament = tournamentModel;
 
-            tournament.OnTournamentComplete += (s, e) => this.Close();
+            tournament.OnTournamentComplete += Complete();
 
             selectedMatchups.ListChanged += matchupListBox_SelectedIndexChanged;
             LoadFromData();
@@ -24,6 +24,16 @@ namespace TrackerUI
             WireUpRounds();
             WireUpMatchups();
 
+        }
+
+        private EventHandler<DateTime> Complete()
+        {
+            return (s, e) =>
+            {
+                string winnerTeamName = tournament.Rounds.Last().Select(e => e.Winner.TeamName).First();
+                MessageBox.Show($"The last match in tournament has been scored. Winner is {winnerTeamName}.", "Tournament Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                Close();
+            };
         }
 
         private void LoadFromData()
