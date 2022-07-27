@@ -38,6 +38,7 @@ public partial class TournamentDashboardForm : Form
 
     private void loadTournamentButton_Click(object sender, EventArgs e)
     {
+        //Task: Add check on selected model.
         TournamentModel tm = loadExistingTournamentDropDown.SelectedItem as TournamentModel;
         TournamentViewerForm frm = new(tm);
         frm.Show();
