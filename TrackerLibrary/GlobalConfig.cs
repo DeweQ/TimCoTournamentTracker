@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TrackerLibrary.DataAccess;
+using AutoMapper;
 
 namespace TrackerLibrary;
 
@@ -23,6 +24,11 @@ public static class GlobalConfig
     public static Settings Settings = config.GetRequiredSection("Settings").Get<Settings>();
 
     public static IDataConnection Connection { get; private set; }
+
+    private static MapperConfiguration cfg = new(cfg => cfg.AddProfile(new AutoMapperProfile()));
+
+    public static IMapper Mapper = cfg.CreateMapper();
+
 
     public static void InitializeConnections(DatabaseType db)
     {
@@ -42,13 +48,6 @@ public static class GlobalConfig
     public static string CnnString(string name)
     {
         return Settings.ConnectionStrings[name];
-        //return System.Configuration.ConfigurationManager.ConnectionStrings[name].ConnectionString;
 
     }
-
-    //public static string AppKeyLookup(string key)
-    //{
-    //    return System.Configuration.ConfigurationManager.AppSettings[key];
-
-    //}
 }
