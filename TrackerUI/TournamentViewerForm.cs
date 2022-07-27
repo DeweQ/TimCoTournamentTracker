@@ -2,210 +2,209 @@ using System.ComponentModel;
 using TrackerLibrary;
 using TrackerLibrary.Models;
 
-namespace TrackerUI
+namespace TrackerUI;
+
+public partial class TournamentViewerForm : Form
 {
-    public partial class TournamentViewerForm : Form
+    private TournamentModel tournament;
+    BindingList<int> rounds = new();
+    BindingList<MatchupModel> selectedMatchups = new();
+
+    public TournamentViewerForm(TournamentModel tournamentModel)
     {
-        private TournamentModel tournament;
-        BindingList<int> rounds = new();
-        BindingList<MatchupModel> selectedMatchups = new();
+        InitializeComponent();
+        tournament = tournamentModel;
 
-        public TournamentViewerForm(TournamentModel tournamentModel)
+        tournament.OnTournamentComplete += Complete();
+
+        selectedMatchups.ListChanged += matchupListBox_SelectedIndexChanged;
+        LoadFromData();
+
+        LoadRounds();
+        WireUpRounds();
+        WireUpMatchups();
+
+    }
+
+    private EventHandler<DateTime> Complete()
+    {
+        return (s, e) =>
         {
-            InitializeComponent();
-            tournament = tournamentModel;
+            string winnerTeamName = tournament.Rounds.Last().Select(e => e.Winner.TeamName).First();
+            MessageBox.Show($"The last match in tournament has been scored. Winner is {winnerTeamName}.", "Tournament Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            Close();
+        };
+    }
 
-            tournament.OnTournamentComplete += Complete();
+    private void LoadFromData()
+    {
+        tournamentName.Text = tournament.TournamentName;
+    }
 
-            selectedMatchups.ListChanged += matchupListBox_SelectedIndexChanged;
-            LoadFromData();
+    private void LoadRounds()
+    {
+        rounds.Clear();
+        Enumerable.Range(1, tournament.Rounds.Count).ToList().ForEach(x => rounds.Add(x));
+        //WireUpRounds();
+    }
 
-            LoadRounds();
-            WireUpRounds();
-            WireUpMatchups();
+    private void WireUpRounds()
+    {
+        roundDropDown.DataSource = rounds;
+    }
 
-        }
+    private void WireUpMatchups()
+    {
+        matchupListBox.DataSource = selectedMatchups;
+        matchupListBox.DisplayMember = "DisplayName";
+    }
 
-        private EventHandler<DateTime> Complete()
+    private void roundDropDown_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        LoadMatchups();
+    }
+
+    private void LoadMatchups()
+    {
+        int round = (int)roundDropDown.SelectedItem;
+        selectedMatchups.Clear();
+        tournament.Rounds.First(e => e.First().MatchupRound == round).ToList().ForEach(x =>
         {
-            return (s, e) =>
+            if (x.Winner == null || !unplayedOnlyCheckBox.Checked)
             {
-                string winnerTeamName = tournament.Rounds.Last().Select(e => e.Winner.TeamName).First();
-                MessageBox.Show($"The last match in tournament has been scored. Winner is {winnerTeamName}.", "Tournament Completed!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                Close();
-            };
-        }
-
-        private void LoadFromData()
-        {
-            tournamentName.Text = tournament.TournamentName;
-        }
-
-        private void LoadRounds()
-        {
-            rounds.Clear();
-            Enumerable.Range(1, tournament.Rounds.Count).ToList().ForEach(x => rounds.Add(x));
-            //WireUpRounds();
-        }
-
-        private void WireUpRounds()
-        {
-            roundDropDown.DataSource = rounds;
-        }
-
-        private void WireUpMatchups()
-        {
-            matchupListBox.DataSource = selectedMatchups;
-            matchupListBox.DisplayMember = "DisplayName";
-        }
-
-        private void roundDropDown_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            LoadMatchups();
-        }
-
-        private void LoadMatchups()
-        {
-            int round = (int)roundDropDown.SelectedItem;
-            selectedMatchups.Clear();
-            tournament.Rounds.First(e => e.First().MatchupRound == round).ToList().ForEach(x =>
-            {
-                if (x.Winner == null || !unplayedOnlyCheckBox.Checked)
-                {
-                    selectedMatchups.Add(x);
-                }
-            });
-            WireUpMatchups();
-            LoadMatchup();
-            DisplayMatchupInfo();
-        }
-
-        private void DisplayMatchupInfo()
-        {
-            bool isVisible = (selectedMatchups.Count > 0);
-
-            teamOneName.Visible = isVisible;
-            teamOneScoreLabel.Visible = isVisible;
-            teamOneScoreValue.Visible = isVisible;
-
-            versusLabel.Visible = isVisible;
-            scoreButton.Visible = isVisible;
-
-            teamTwoName.Visible = isVisible;
-            teamTwoScoreLabel.Visible = isVisible;
-            teamTwoScoreValue.Visible = isVisible;
-        }
-
-        private void matchupListBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            LoadMatchup();
-        }
-
-        private void LoadMatchup()
-        {
-            teamOneScoreValue.Text = String.Empty;
-            teamTwoScoreValue.Text = String.Empty;
-            teamOneName.Text = "Not Yet Set";
-            teamTwoName.Text = "Not Yet Set";
-            MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
-            if (matchup?.Entries.Count > 0 && matchup.Entries[0].TeamCompeting is not null)
-            {
-                teamOneName.Text = matchup.Entries[0].TeamCompeting.TeamName;
-                teamOneScoreValue.Text = matchup.Entries[0].Score.ToString();
-                teamTwoName.Text = "<bye>";
+                selectedMatchups.Add(x);
             }
-            if (matchup?.Entries.Count > 1)
+        });
+        WireUpMatchups();
+        LoadMatchup();
+        DisplayMatchupInfo();
+    }
+
+    private void DisplayMatchupInfo()
+    {
+        bool isVisible = (selectedMatchups.Count > 0);
+
+        teamOneName.Visible = isVisible;
+        teamOneScoreLabel.Visible = isVisible;
+        teamOneScoreValue.Visible = isVisible;
+
+        versusLabel.Visible = isVisible;
+        scoreButton.Visible = isVisible;
+
+        teamTwoName.Visible = isVisible;
+        teamTwoScoreLabel.Visible = isVisible;
+        teamTwoScoreValue.Visible = isVisible;
+    }
+
+    private void matchupListBox_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        LoadMatchup();
+    }
+
+    private void LoadMatchup()
+    {
+        teamOneScoreValue.Text = String.Empty;
+        teamTwoScoreValue.Text = String.Empty;
+        teamOneName.Text = "Not Yet Set";
+        teamTwoName.Text = "Not Yet Set";
+        MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
+        if (matchup?.Entries.Count > 0 && matchup.Entries[0].TeamCompeting is not null)
+        {
+            teamOneName.Text = matchup.Entries[0].TeamCompeting.TeamName;
+            teamOneScoreValue.Text = matchup.Entries[0].Score.ToString();
+            teamTwoName.Text = "<bye>";
+        }
+        if (matchup?.Entries.Count > 1)
+        {
+            teamTwoName.Text = "Net Yet Set";
+            if (matchup.Entries[1].TeamCompeting is not null)
             {
-                teamTwoName.Text = "Net Yet Set";
-                if (matchup.Entries[1].TeamCompeting is not null)
-                {
-                    teamTwoName.Text = matchup.Entries[1].TeamCompeting?.TeamName;
-                    teamTwoScoreValue.Text = matchup.Entries[1].Score.ToString();
-                }
+                teamTwoName.Text = matchup.Entries[1].TeamCompeting?.TeamName;
+                teamTwoScoreValue.Text = matchup.Entries[1].Score.ToString();
             }
         }
+    }
 
-        private bool ProcessScores()
+    private bool ProcessScores()
+    {
+        double teamOneScore = 0;
+        double teamTwoScore = 0;
+        MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
+        if (matchup?.Entries.Count > 0 && matchup.Entries[0].TeamCompeting is not null)
         {
-            double teamOneScore = 0;
-            double teamTwoScore = 0;
-            MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
-            if (matchup?.Entries.Count > 0 && matchup.Entries[0].TeamCompeting is not null)
+            if (ValidateScore(teamOneScoreValue.Text))
             {
-                if (ValidateScore(teamOneScoreValue.Text))
-                {
-                    teamOneScore = double.Parse(teamOneScoreValue.Text);
-                    matchup.Entries[0].Score = double.Parse(teamOneScoreValue.Text);
-                }
-                else
-                {
-                    MessageBox.Show($"Enter a valid score for team {teamOneName.Text}");
-                    return false;
-                }
+                teamOneScore = double.Parse(teamOneScoreValue.Text);
+                matchup.Entries[0].Score = double.Parse(teamOneScoreValue.Text);
             }
-            if (matchup?.Entries.Count > 1 && matchup.Entries[1].TeamCompeting is not null)
+            else
             {
-                if (ValidateScore(teamTwoScoreValue.Text))
-                {
-                    teamTwoScore = double.Parse(teamTwoScoreValue.Text);
-                    matchup.Entries[1].Score = double.Parse(teamTwoScoreValue.Text); 
-                }
-                else
-                {
-                    MessageBox.Show($"Enter a valid score for team {teamOneName.Text}");
-                    return false;
-                }
-            }
-            if (teamOneScore == teamTwoScore && matchup?.Entries.Count > 0)
-            {
-                MessageBox.Show("Matchup can't end with a tie");
+                MessageBox.Show($"Enter a valid score for team {teamOneName.Text}");
                 return false;
             }
-            return true;
         }
-
-
-        private void scoreButton_Click(object sender, EventArgs e)
+        if (matchup?.Entries.Count > 1 && matchup.Entries[1].TeamCompeting is not null)
         {
-            MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
-
-            if (matchup.Entries.Any(e => e.TeamCompeting == null)
-                || matchup.MatchupRound != tournament.CheckCurrentRound())
+            if (ValidateScore(teamTwoScoreValue.Text))
             {
-                MessageBox.Show("Cant score this match.");
-                return;
+                teamTwoScore = double.Parse(teamTwoScoreValue.Text);
+                matchup.Entries[1].Score = double.Parse(teamTwoScoreValue.Text); 
             }
-            //Validate inputs?
-
-            //Add inputs to the model (matchupEntries)
-            bool scoresAreValid = ProcessScores();
-
-            if (!scoresAreValid)
-                return;
-
-            try
+            else
             {
-                TournamentLogic.UpdateTournamentResults(tournament);
+                MessageBox.Show($"Enter a valid score for team {teamOneName.Text}");
+                return false;
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"The application had the folllowing error: {ex.Message}");
-                return;
-            }
-
-            LoadMatchups();
         }
-
-        private bool ValidateScore(string score)
+        if (teamOneScore == teamTwoScore && matchup?.Entries.Count > 0)
         {
-            bool result = true;
-            result = double.TryParse(score, out double parsed);
-            return result;
+            MessageBox.Show("Matchup can't end with a tie");
+            return false;
+        }
+        return true;
+    }
+
+
+    private void scoreButton_Click(object sender, EventArgs e)
+    {
+        MatchupModel matchup = (MatchupModel)matchupListBox.SelectedItem;
+
+        if (matchup.Entries.Any(e => e.TeamCompeting == null)
+            || matchup.MatchupRound != tournament.CheckCurrentRound())
+        {
+            MessageBox.Show("Cant score this match.");
+            return;
+        }
+        //Validate inputs?
+
+        //Add inputs to the model (matchupEntries)
+        bool scoresAreValid = ProcessScores();
+
+        if (!scoresAreValid)
+            return;
+
+        try
+        {
+            TournamentLogic.UpdateTournamentResults(tournament);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"The application had the folllowing error: {ex.Message}");
+            return;
         }
 
-        private void unplayedOnlyCheckBox_CheckedChanged(object sender, EventArgs e)
-        {
-            LoadMatchups();
-        }
+        LoadMatchups();
+    }
+
+    private bool ValidateScore(string score)
+    {
+        bool result = true;
+        result = double.TryParse(score, out double parsed);
+        return result;
+    }
+
+    private void unplayedOnlyCheckBox_CheckedChanged(object sender, EventArgs e)
+    {
+        LoadMatchups();
     }
 }
